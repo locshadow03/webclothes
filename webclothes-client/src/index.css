@@ -1,0 +1,201 @@
+body{
+    margin: 0;
+    padding: 0;
+    background: linear-gradient(to left, rgb(231, 243, 254) 0%, rgb(226, 241, 252) 45%);
+    overflow-x: hidden;
+    height:1000px
+}
+
+/* icon search */
+.notification-container {
+    position: relative;
+    display: inline-block;
+}
+
+.notification-icon {
+    position: relative;
+    display: inline-block;
+}
+
+.favorite-button {
+    color: white; /* Màu mặc định của biểu tượng trái tim */
+  }
+  
+  .favorite-button.favorited {
+    color: red !important; /* Thay đổi màu khi yêu thích, sử dụng !important nếu cần */
+  }
+
+.notification-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: rgb(255, 214, 102);
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 10px;
+    line-height: 20px;
+}
+
+.bi-bell {
+    font-size: 1.5rem;
+    color: white;
+}
+
+/* icon email */
+
+email-container {
+    position: relative;
+    display: inline-block;
+}
+
+.email-icon {
+    position: relative;
+    display: inline-block;
+}
+
+.email-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background-color: rgb(110, 153, 255);
+    color: white;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    text-align: center;
+    font-size: 10px;
+    line-height: 20px;
+}
+
+.bi-envelope{
+    font-size: 1.5rem;
+    color: white;
+}
+
+/* avt */
+
+.rounded-circle {
+    overflow: hidden; 
+    display: inline-block;
+}
+
+.rounded-circle img {
+    object-fit: cover;
+}
+
+html, body {
+    height: 100%;
+    margin: 0;
+}
+
+
+.fixed-left {
+    top: 60px;
+    left: 0;
+    height: 100%;
+}
+
+.active{
+    background-color: rgb(219, 232, 244);
+    a i{
+        color: rgb(17, 150, 251);
+    }
+    a span{
+        color: rgb(17, 150, 251);
+    }
+}  
+
+span {
+    color: rgb(148, 148, 148);
+}
+
+nav i{
+    color: rgb(148, 148, 148);
+}
+
+.input-group { 
+    width: 600px; 
+    margin: 0 auto; 
+    position: relative; 
+}
+.form-control {
+    padding-right: 3rem;
+}
+.input-group-append {
+    position: absolute; 
+    right: 0; 
+    top: 0; 
+    bottom: 0;
+    width: 3rem; 
+}
+.input-group-append button {
+    width: 100%; 
+    height: 100%; 
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+}
+
+
+.hi {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+}
+
+/* Custom styles for order status */
+.status-select {
+    border: 1px solid #ced4da;
+    border-radius: .25rem;
+    background-color: #f8f9fa;
+    color: #495057; /* Màu chữ chung */
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+    line-height: 1.5;
+    font-weight: bold;
+    box-shadow: inset 0 0 0 rgba(0, 0, 0, 0.125);
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* Màu nền cho các trạng thái */
+.status-pending {
+    background-color: #e9ecef;
+}
+
+.status-confirmed {
+    background-color: #d4edda;
+}
+
+.status-shipping {
+    background-color: #fff3cd;
+}
+
+.status-delivered {
+    background-color: #cce5ff;
+}
+
+/* Điều chỉnh màu chữ cho các trạng thái */
+.status-pending option {
+    color: #212529;
+}
+
+.status-confirmed option {
+    color: #155724;
+}
+
+.status-shipping option {
+    color: #856404;
+}
+
+.status-delivered option {
+    color: #004085;
+}
+
+/* Làm cho văn bản trong các tùy chọn rõ ràng hơn */
+.status-select option {
+    padding: 0.375rem 0.75rem;
+    font-size: 1rem;
+}
+

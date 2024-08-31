@@ -1,0 +1,72 @@
+body {
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
+}
+
+@media (max-width: 576px) {
+    .bg-white {
+        height: 650px;
+    }
+    .logo {
+        display: none;
+    }
+    .inputlogin {
+        height: 95%;
+        width: 100%;
+    }
+    .cl {
+        text-align: center;
+    }
+}
+
+@media only screen and (min-width: 576px) and (max-width: 768px) {
+    .bg-white {
+        height: 650px;
+    }
+    .logo {
+        display: none;
+    }
+    .inputlogin {
+        height: 95%;
+        width: 100%;
+    }
+    .cl {
+        text-align: center;
+    }
+}
+
+@media only screen and (min-width: 768px) and (max-width: 992px) {
+    .bg-white {
+        height: 600px;
+    }
+    .logo {
+        display: none;
+    }
+    .inputlogin {
+        height: 95%;
+        width: 100%;
+    }
+    .cl {
+        text-align: center;
+    }
+}
+
+@media (min-width: 992px) {
+    .bg-white {
+        height: 600px;
+    }
+    .logo {
+        width: 100%;
+        height: 100%;
+    }
+    .inputlogin {
+        height: 90%;
+        width: 100%;
+    }
+    .cl {
+        text-align: center;
+    }
+}
+
+
