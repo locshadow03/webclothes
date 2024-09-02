@@ -1,6 +1,37 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { addContact } from '../api/Contact';
+import { toast } from 'react-toastify';
 
 const FooterHome = () => {
+  const [newContact, setNewContact] = useState({
+    fullName: "",
+    email: "",
+    phoneNumber: "",
+    message: "",
+    thank: ""
+  });
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleContactInputChange = (e) => {
+      const { name, value } = e.target;
+      setNewContact({ ...newContact, [name]: value });
+  }
+
+  const handleSubmit = async (e) => {
+      e.preventDefault();
+      try {
+          const success = await addContact(newContact.fullName, newContact.email, newContact.phoneNumber, newContact.message);
+          if (success) {
+              toast.success("Cảm ơn bạn đã đưa ra sự góp ý chúng tôi sẽ cố gắng khắc phục!");
+              setErrorMessage("");
+          } else {
+              setErrorMessage("Error adding contact");
+          }
+      } catch (error) {
+          setErrorMessage(error.message);
+      }
+  }
+
   return (
     <footer className="bg-light text-center text-lg-start" id="contact">
       <div className="container p-4">
@@ -46,20 +77,28 @@ const FooterHome = () => {
 
           <div className="col-lg-4 col-md-12 mb-4 mb-md-0">
             <h5 className="text-uppercase">Gửi câu hỏi</h5>
-            <form action="submit.php" method="POST">
+            <form onSubmit={handleSubmit}>
               <div className="form-group mt-2">
-                <input type="text" className="form-control" placeholder="Tên của bạn" name="name" required />
+                <input type="text" className="form-control" placeholder="Tên của bạn" name="name" required 
+                
+                onChange={handleContactInputChange}/>
               </div>
               <div className="form-group mt-2">
-                <input type="email" className="form-control" placeholder="Email của bạn" name="email" required />
+                <input type="email" className="form-control" placeholder="Email của bạn" name="email" required 
+                
+                onChange={handleContactInputChange}/>
               </div>
               <div className="form-group mt-2">
-                <input type="tel" className="form-control" placeholder="Số điện thoại của bạn" name="phone" required />
+                <input type="tel" className="form-control" placeholder="Số điện thoại của bạn" name="phone" required 
+                
+                onChange={handleContactInputChange}/>
               </div>
               <div className="form-group mt-2">
-                <textarea className="form-control" rows="4" placeholder="Tin nhắn của bạn" name="message" required></textarea>
+                <textarea className="form-control" rows="4" placeholder="Tin nhắn của bạn" name="message" required
+                
+                onChange={handleContactInputChange}></textarea>
               </div>
-              <button type="submit" className="btn btn-primary mt-2">Gửi</button>
+              <button className="btn btn-primary mt-2">Gửi</button>
             </form>
           </div>
         </div>
