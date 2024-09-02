@@ -32,6 +32,7 @@ import MyOrder from './component/home/MyOrder.jsx';
 import DashBoard from './component/dashboard/tke/DashBoard.jsx';
 import Chart from './component/dashboard/tke/Chart.jsx';
 import ProductSearch from './component/home/ProductSearch.jsx';
+import Help from './component/home/Help.jsx';
 
 
 // Bố cục với Navbar và Menu
@@ -94,6 +95,7 @@ function App() {
             <Route path="/home" element={<HomeLayout><Home /></HomeLayout>} />
             <Route path="/home/account/profile/:userId" element={<ProfileLayout><Profile /></ProfileLayout>} />
             <Route path="/home/account/order/:customerId" element={<ProfileLayout><MyOrder /></ProfileLayout>} />
+            <Route path="/home/help" element={<HomeLayout><Help /></HomeLayout>} />
 
             <Route path="/home/product-detail/:productId" element={<HomeLayout><ProductDetail /></HomeLayout>} />
             <Route path="/home/product-filter" element={<HomeLayout><ProductFilter /></HomeLayout>} />

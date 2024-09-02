@@ -99,6 +99,31 @@ public class UserServiceImpl implements IUserService{
         return response;
     }
 
+    public UserDto refreshToken(UserDto refreshTokenRequest) {
+        UserDto response = new UserDto();
+        try {
+            String ourEmail = jwtUtils.extractUsername(refreshTokenRequest.getToken());
+            User users = userRepository.findByUsername(refreshTokenRequest.getUsername())
+                    .orElseThrow(() -> new UsernameNotFoundException("User not found with username: " + refreshTokenRequest.getUsername()));
+
+
+            if (jwtUtils.isTokenValid(refreshTokenRequest.getToken(), users)) {
+                var jwt = jwtUtils.generateToken(users);
+                response.setStatusCode(200);
+                response.setToken(jwt);
+                response.setRefreshToken(refreshTokenRequest.getToken());
+                response.setExpirationTime("24Hrs");
+                response.setMessage("Successfully Refreshed Token");
+            }
+            response.setStatusCode(200);
+            return response;
+        } catch (Exception e) {
+            response.setStatusCode(500);
+            response.setMessage(e.getMessage());
+            return response;
+        }
+    }
+
     @Override
     public void deleteUser(Long userId) throws UserNotFoundException {
         if (userRepository.existsById(userId)) {

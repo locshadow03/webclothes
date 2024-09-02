@@ -89,9 +89,9 @@ const Admin = () => {
 
                 <tbody>
 
-                {categories.map((category) => (
+                {categories.map((category, index) => (
                         <tr key={category.id} className='text-center'>
-                            <td>{category.id}</td>
+                            <td>{index + 1}</td>
                             <td>{category.nameCategory}</td>
                             <td>
                                 {category.imageCategory && (

@@ -227,6 +227,9 @@ const HeaderHome = () => {
                     <li className="nav-item">
                       <a className="nav-link text-white" href="#contact">Liên hệ</a>
                     </li>
+                    <li className="nav-item">
+                      <Link to = "/home/help" className="nav-link text-white">Hướng dẫn</Link>
+                    </li>
                   </ul>
                 </div>
               </div>

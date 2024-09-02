@@ -90,9 +90,9 @@ const AllBrand = () => {
 
                 <tbody>
 
-                {brands.map((brand) => (
+                {brands.map((brand, index) => (
                         <tr key={brand.id} className='text-center'>
-                            <td>{brand.id}</td>
+                            <td>{index + 1}</td>
                             <td>{brand.nameBrand}</td>
                             <td>
                                 {brand.imageBrand && (

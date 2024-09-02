@@ -122,7 +122,6 @@ const getRandomProducts = (products, numberOfProducts) => {
   return shuffled.slice(0, numberOfProducts);
 };
 
-// Ví dụ sử dụng
 const numberOfProducts = 16;
 
 
@@ -220,7 +219,7 @@ const formatCurrency = (value) => {
           <h4 style={{ color: 'rgb(255, 174, 0)' }}>Gợi ý hôm nay</h4>
         </div>
         <div className="row">
-          {/* Product suggestions */}
+          
           {currentProducts.map((product) => (
           <div className="col-3 mt-2" key={product.productId}>
             <div className="d-flex flex-column align-items-center">
@@ -271,7 +270,7 @@ const formatCurrency = (value) => {
 
           ))}
 
-          {/* Repeat other product suggestions similarly */}
+          
         </div>
         <div className="text-center mt-5">
           <Link to = "/home/product-filter" className="btn btn-primary px-3">Xem thêm</Link>

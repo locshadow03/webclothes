@@ -27,6 +27,11 @@ public class AuthController {
         return ResponseEntity.ok(userService.login(userDto));
     }
 
+    @PostMapping("/refresh")
+    public ResponseEntity<UserDto> refreshToken(@RequestBody UserDto req){
+        return ResponseEntity.ok(userService.refreshToken(req));
+    }
+
     @PostMapping("/logout")
     public ResponseEntity<?> logout(HttpServletRequest request) {
         HttpSession session = request.getSession(false);

@@ -118,13 +118,13 @@ const AllProducts = () => {
 
                 <tbody>
 
-                {currentProducts.map((product) => {
+                {currentProducts.map((product, index) => {
                             // Default selected size for this product
                             const selectedProductSize = selectedSize[product.productId] || (product.sizeQuantities.length > 0 ? product.sizeQuantities[0].size : "");
 
                             return (
                                 <tr key={product.productId} className='text-center'>
-                                    <td>{product.productId}</td>
+                                    <td>{index + 1}</td>
                                     <td>{product.name}</td>
                                     <td>{product.price}</td>
                                     <td>

@@ -31,7 +31,6 @@ const MenuProfile = () => {
       const handleLogout = async () => {
         try {
           await logout();
-          window.location.reload();
           navigate('/home');
         } catch (error) {
           console.error('Logout error:', error);
