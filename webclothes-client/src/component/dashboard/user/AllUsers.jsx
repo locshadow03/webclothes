@@ -129,7 +129,7 @@ const AllUsers = () => {
                             <td className='gap-2'>
                                 <button
                                     className='btn btn-primary btn-sm mx-2' data-bs-toggle="modal" data-bs-target="#myModal"
-                                    onClick = {() => handleCustomer(user.customerId)}
+                                    onClick = {() => handleCustomer(user.id)}
                                     >
                                     <FaEye />
                                 </button>

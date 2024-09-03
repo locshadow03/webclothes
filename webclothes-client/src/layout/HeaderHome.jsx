@@ -85,7 +85,6 @@ const HeaderHome = () => {
     try {
       await logout();
       setUsername("");
-      window.location.reload();
       navigate('/home');
     } catch (error) {
       console.error('Logout error:', error);

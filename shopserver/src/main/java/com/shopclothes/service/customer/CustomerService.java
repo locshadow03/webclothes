@@ -13,6 +13,9 @@ import org.springframework.web.multipart.MultipartFile;
 
 import javax.sql.rowset.serial.SerialBlob;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.sql.Blob;
 import java.sql.SQLException;
 import java.util.List;
@@ -80,21 +83,55 @@ public class CustomerService implements ICustomerService{
             // Nếu chưa tồn tại, tạo một khách hàng mới với các giá trị đã nhập
             customer = new Customer();
             customer.setUser(userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("User not found")));
-            customer.setFirstName(firstName);
-            customer.setLastName(lastName);
-            customer.setPhoneNumber(phoneNumber);
-            customer.setAddress(address);
+            if (firstName != null && !firstName.trim().isEmpty()) {
+                customer.setFirstName(firstName);
+            } else {
+                customer.setFirstName("");
+            }
+
+            if (lastName != null && !lastName.trim().isEmpty()) {
+                customer.setLastName(lastName);
+            } else {
+                customer.setLastName("");
+            }
+
+            if (phoneNumber != null && !phoneNumber.trim().isEmpty()) {
+                customer.setPhoneNumber(phoneNumber);
+            } else {
+                customer.setPhoneNumber("");
+            }
+
+            if (address != null && !address.trim().isEmpty()) {
+                customer.setAddress(address);
+            } else {
+                customer.setAddress("");
+            }
+
             if (photoBytes != null && photoBytes.length > 0) {
                 try {
                     customer.setAvatar(new SerialBlob(photoBytes));
                 } catch (SQLException ex) {
                     throw new InternalServerException("Error creating customer");
                 }
+            } else {
+                try {
+                    byte[] defaultAvatar = getDefaultAvatarBytes();
+                    customer.setAvatar(new SerialBlob(defaultAvatar));
+                } catch (SQLException ex) {
+                    throw new InternalServerException("Error setting default avatar");
+                }
             }
         }
-
-        // Lưu khách hàng vào cơ sở dữ liệu
         return customerRepository.save(customer);
+    }
+
+    public static byte[] getDefaultAvatarBytes() {
+        try {
+            Path path = Paths.get("src/main/resources/aokhoaclen.png");
+            return Files.readAllBytes(path);
+        } catch (IOException e) {
+            throw new RuntimeException("Error loading default avatar", e);
+        }
     }
 
     @Override

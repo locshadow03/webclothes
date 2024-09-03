@@ -24,6 +24,23 @@ export async function addContact(fullName, email, phoneNumber, message) {
     formData.append("phoneNumber", phoneNumber)
     formData.append("message", message)
     const response = await api.post("/add_contact", formData)
-
     return response.data
+}
+
+export async function getAllContact() {
+    try{
+        const result = await api.get("/all_contact")
+        return result.data
+    }catch(error){
+        throw new Error("Error fetching contact")
+    }
+}
+
+export async function deleteContact(contactId){
+    try{
+        const result = await api.delete(`/delete/${contactId}`)
+        return result.data
+    }catch(error){
+        throw new Error(`Error deleting contact ${error.message}`)
+    }
 }

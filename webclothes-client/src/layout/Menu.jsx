@@ -17,6 +17,8 @@ const Menu = () => {
         setActiveItem('quan-ly-nguoi-dung');
       } else if (location.pathname === '/dashboard/order') {
         setActiveItem('danh-sach-don-hang');
+      } else if (location.pathname === '/dashboard/contact') {
+        setActiveItem('quan-ly-lien-he');
       } else if (location.pathname === '/dashboard/chart') {
         setActiveItem('bieu-do');
       }
@@ -72,6 +74,14 @@ const Menu = () => {
                       <span className='fw-bold'>Danh sách đơn hàng</span>
                     </Link>
                   </li>
+
+                  <li className={`mt-2 nav-item ${activeItem === 'quan-ly-lien-he' ? 'active' : ''}`} style={{ listStyleType: 'none' }}>
+                    <Link to = "/dashboard/contact" className="nav-link d-block" style={{ display: 'flex', alignItems: 'center' }} onClick={() => handleItemClick('quan-ly-lien-he')}>
+                      <i className="bi bi-chat-dots-fill mx-1 fw-bold"></i>
+                      <span className='fw-bold'>Quản lý liên hệ</span>
+                    </Link>
+                  </li>
+
                   <li className={`mt-2 nav-item ${activeItem === 'bieu-do' ? 'active' : ''}`} style={{ listStyleType: 'none' }}>
                     <Link to = "/dashboard/chart" className="nav-link d-block" style={{ display: 'flex', alignItems: 'center' }} onClick={() => handleItemClick('bieu-do')}>
                       <i className="bi bi-bar-chart-fill mx-1 fw-bold"></i>

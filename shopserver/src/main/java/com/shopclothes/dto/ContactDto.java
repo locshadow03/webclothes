@@ -13,7 +13,7 @@ public class ContactDto {
     private Long id;
     private String fullName;
     private String email;
-    private String phoneNumer;
+    private String phoneNumber;
     private String message;
     private LocalDateTime createdDate;
 

@@ -33,6 +33,7 @@ import DashBoard from './component/dashboard/tke/DashBoard.jsx';
 import Chart from './component/dashboard/tke/Chart.jsx';
 import ProductSearch from './component/home/ProductSearch.jsx';
 import Help from './component/home/Help.jsx';
+import AllContact from './component/dashboard/contact/AllContact.jsx';
 
 
 // Bố cục với Navbar và Menu
@@ -125,6 +126,8 @@ function App() {
             <Route path="/auth/login" element={<AuthLayout><Login /></AuthLayout>} />
 
             <Route path="/dashboard/user" element={<MainLayout><AllUsers /></MainLayout>} />
+
+            <Route path="/dashboard/contact" element={<MainLayout><AllContact /></MainLayout>} />
           </Routes>
         </Router>
       </main>

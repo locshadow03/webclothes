@@ -61,6 +61,10 @@ public class SecurityConfig {
 
                         .requestMatchers("/dashboard/order/all-order/**").hasAuthority("ADMIN")
                         .requestMatchers("/dashboard/order/update-status/**").hasAuthority("ADMIN")
+
+                        .requestMatchers("/contact/all_contact").hasAuthority("ADMIN")
+                        .requestMatchers("/contact/delete/**").hasAuthority("ADMIN")
+
                         .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authenticationProvider(authenticationProvider()).addFilterBefore(

@@ -79,7 +79,7 @@ const FooterHome = () => {
             <h5 className="text-uppercase">Gửi câu hỏi</h5>
             <form onSubmit={handleSubmit}>
               <div className="form-group mt-2">
-                <input type="text" className="form-control" placeholder="Tên của bạn" name="name" required 
+                <input type="text" className="form-control" placeholder="Tên của bạn" name="fullName" required 
                 
                 onChange={handleContactInputChange}/>
               </div>
@@ -89,7 +89,7 @@ const FooterHome = () => {
                 onChange={handleContactInputChange}/>
               </div>
               <div className="form-group mt-2">
-                <input type="tel" className="form-control" placeholder="Số điện thoại của bạn" name="phone" required 
+                <input type="tel" className="form-control" placeholder="Số điện thoại của bạn" name="phoneNumber" required 
                 
                 onChange={handleContactInputChange}/>
               </div>

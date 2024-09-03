@@ -23,7 +23,7 @@ public class Contact {
 
     private String email;
 
-    private String phoneNumer;
+    private String phoneNumber;
 
     private String message;
 

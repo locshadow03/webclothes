@@ -2,11 +2,14 @@ package com.shopclothes.service.user;
 
 import com.shopclothes.dto.UserDto;
 import com.shopclothes.extension.UserNotFoundException;
+import com.shopclothes.model.Customer;
 import com.shopclothes.model.Role;
 import com.shopclothes.model.User;
+import com.shopclothes.repository.CustomerRepository;
 import com.shopclothes.repository.RoleRepository;
 import com.shopclothes.repository.UserRepository;
 import com.shopclothes.service.JWTUtils;
+import com.shopclothes.service.customer.ICustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -27,6 +30,10 @@ public class UserServiceImpl implements IUserService{
     private PasswordEncoder passwordEncoder;
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private ICustomerService customerService;
+
     @Autowired
     private RoleRepository roleRepository;
 
@@ -52,6 +59,7 @@ public class UserServiceImpl implements IUserService{
             user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
             user.setRoles(Arrays.asList(roleRepository.findByName("USER")));
             User userResult = userRepository.save(user);
+            Customer customer = customerService.updateCustomer(userResult.getId(), null, null, null, null, null);
             if(userResult.getId() > 0){
                 userDto.setOurUsers((userResult));
                 userDto.setMessage("User Saved Successfully");
