@@ -27,12 +27,14 @@ public class CartItem {
     private int quantity;
     private Double price;
     private String size;
+    private String color;
 
-    public CartItem(Cart cart, Product product, String size, int quantity, double price) {
+    public CartItem(Cart cart, Product product, String size, int quantity, double price, String color) {
         this.cart = cart;
         this.product = product;
         this.size = size;
         this.quantity = quantity;
         this.price = price;
+        this.color = color;
     }
 }

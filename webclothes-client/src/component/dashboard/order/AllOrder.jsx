@@ -3,6 +3,7 @@ import ProductPaginator from '../../common/ProductPaginator'
 import { deleteOrder, getAllOrders, getDetailById, updateStatusOrder } from '../../../api/Order'
 import { FaEye, FaTrashAlt } from 'react-icons/fa'
 import { toast } from 'react-toastify'
+import { getBill } from '../../../api/Bill'
 
 const AllOrder = () => {
     const[orders, setOrders] = useState([])
@@ -93,6 +94,32 @@ const AllOrder = () => {
         }).format(value);
       };
 
+      const handleDownloadInvoice = async (orderId) => {
+        try {
+            const response = await getBill(orderId);
+            console.log("Bill", response);
+            
+            if (response.status !== 200) {
+                throw new Error('Tải hóa đơn thất bại');
+            }
+    
+            const blob = response.data;
+            const url = window.URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.setAttribute('download', `hoadon_order_${orderId}.xlsx`);
+            document.body.appendChild(link);
+            link.click();
+            link.remove();
+            window.URL.revokeObjectURL(url);
+            toast.success('Tải hóa đơn thành công!');
+        } catch (error) {
+            console.error(error);
+            toast.error('Tải hóa đơn thất bại');
+        }
+    };
+    
+
 
     const indexOfLastOrder = currentPage * ordersPerPage;
     const indexOfFirstOrder = indexOfLastOrder - ordersPerPage;
@@ -123,6 +150,8 @@ const AllOrder = () => {
                         <th style = {{color: "blue"}}>Tên người nhận</th>
                         <th style = {{color: "blue"}}>Số điện thoại</th>
                         <th style = {{color: "blue"}}>Địa chỉ</th>
+                        <th style = {{color: "blue"}}>Phương thức thanh toán</th>
+                        <th style = {{color: "blue"}}>Trạng thái thanh toán</th>
                         <th style = {{color: "blue"}}>Trạng thái đơn hàng</th>
                         <th style = {{color: "blue"}}>Tổng tiền</th>
                         <th style = {{color: "blue"}}>Actions</th>
@@ -137,6 +166,8 @@ const AllOrder = () => {
                         <td>{order.firstName}</td>
                         <td>{order.phoneNumber}</td>
                         <td>{order.address}</td>
+                        <td>{order.paymentMethod}</td>
+                        <td>{order.paymentStatus}</td>
                         
                         <td>
                             <select className={`py-2 status-select ${getStatusClass(order.statusOrder)}`}
@@ -166,6 +197,13 @@ const AllOrder = () => {
                             >
                                 <FaTrashAlt />
                             </button>
+
+                            <button
+                                className='btn btn-success btn-sm mx-1 mt-1'
+                                onClick={() => handleDownloadInvoice(order.orderId)}
+                            >
+                                In bill
+                            </button>
                         </td>
                     </tr>
         
@@ -189,7 +227,7 @@ const AllOrder = () => {
                             {selectedOrder && (
                                 <div>
                                     <div className="row">
-                                        <div className="col-md-6">
+                                        <div className="col-md-4">
                                             <h6>Mã đơn hàng:</h6>
                                             <p style = {{color: "green", fontWeight : "bold"}}>{selectedOrder.orderCode}</p>
                                             <h6>Tên người nhận:</h6>
@@ -197,13 +235,19 @@ const AllOrder = () => {
                                             <h6>Số điện thoại:</h6>
                                             <p>{selectedOrder.phoneNumber}</p>
                                         </div>
-                                        <div className="col-md-6">
+                                        <div className="col-md-4">
+                                            <h6>Phương thức thanh toán:</h6>
+                                            <p>{selectedOrder.paymentMethod}</p>
+                                            <h6>Trạng thái thanh toán:</h6>
+                                            <p>{selectedOrder.paymentStatus}</p>
+                                            <h6>Tổng tiền:</h6>
+                                            <p className='text-danger'>{formatCurrency(selectedOrder.totalAmount)}</p>
+                                        </div>
+                                        <div className="col-md-4">
                                             <h6>Địa chỉ:</h6>
                                             <p>{selectedOrder.address}</p>
                                             <h6>Trạng thái:</h6>
                                             <p>{selectedOrder.statusOrder}</p>
-                                            <h6>Tổng tiền:</h6>
-                                            <p className='text-danger'>{formatCurrency(selectedOrder.totalAmount)}</p>
                                         </div>
                                     </div>
 
@@ -214,6 +258,7 @@ const AllOrder = () => {
                                                 <th>Hình ảnh</th>
                                                 <th>Tên sản phẩm</th>
                                                 <th>Size</th>
+                                                <th>Màu sắc</th>
                                                 <th>Số lượng</th>
                                                 <th>Giá</th>
                                             </tr>
@@ -224,7 +269,7 @@ const AllOrder = () => {
                                                     <td>
                                                     {item.imageProduct && (
                                                         <img
-                                                        src={`data:image/jpeg;base64,${item.imageProduct}`}
+                                                        src={item.imageProduct}
                                                         alt={`Photo of ${item.imageProduct}`}
                                                         style={{ width: '40px', height: '35px' }}
                                                     />
@@ -232,12 +277,11 @@ const AllOrder = () => {
                                                     </td>
                                                     <td>{item.productName}</td>
                                                     <td>{item.size}</td>
+                                                    <td>{item.color}</td>
                                                     <td>{item.quantity}</td>
                                                     <td className="text-danger">
                                                         {formatCurrency(
-                                                            item.disCount
-                                                                ? (item.price - item.price * (item.disCount / 100)) * item.quantity
-                                                                : item.price * item.quantity
+                                                            item.price  
                                                         )}
                                                     </td>
                                                 </tr>

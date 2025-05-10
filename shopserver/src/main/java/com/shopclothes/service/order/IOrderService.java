@@ -9,7 +9,7 @@ import com.shopclothes.model.OrderItem;
 import java.util.List;
 
 public interface IOrderService {
-    Order createOrder(Customer customer, List<OrderItem> items);
+    Order createOrder(Customer customer, List<OrderItem> items, String paymentMethod);
 
     Order getOrder(Long orderId);
 

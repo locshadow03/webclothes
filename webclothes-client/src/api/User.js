@@ -63,6 +63,13 @@ export async function updateRole(userId,role){
     return response
 }
 
+export async function updateAction(userId,action){
+    const formData = new FormData()
+    formData.append("action", action)
+    const response = await api1.post(`/update/user/action/${userId}`, formData)
+    return response
+}
+
 export async function getTotalUser(){
     try{
         const result = await api1.get("/total_user")

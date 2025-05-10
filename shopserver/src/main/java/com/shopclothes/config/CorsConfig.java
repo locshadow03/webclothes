@@ -3,6 +3,7 @@ package com.shopclothes.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 @Configuration
@@ -15,6 +16,14 @@ public class CorsConfig {
                 registry.addMapping("/**")
                         .allowedMethods("GET", "POST", "PUT", "DELETE")
                         .allowedOrigins("*");
+            }
+
+            @Override
+            public void addResourceHandlers(ResourceHandlerRegistry registry) {
+                registry.addResourceHandler("/uploads/**")
+                        .addResourceLocations("file:F:/java/project/uploads/")
+                        .setCachePeriod(3600)
+                        .resourceChain(true);
             }
         };
     }

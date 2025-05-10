@@ -48,20 +48,17 @@ public class CategoryController {
         List<Category> categories = categoryService.getAllCategorys();
         List<CategoryDto> categoryDtos = new ArrayList<>();
         for(Category category : categories){
-            byte[] photoBytes = categoryService.getCategoryPhotoByCategoryId(category.getId());
-            if(photoBytes != null && photoBytes.length > 0){
-                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-                CategoryDto categoryDto = getCategoryDto(category);
-                categoryDto.setImageCategory(base64Photo);
-                categoryDtos.add(categoryDto);
-            }
+            CategoryDto categoryDto = new CategoryDto();
+
+            categoryDto = getCategoryDto(category);
+            categoryDtos.add(categoryDto);
         }
         return  ResponseEntity.ok(categoryDtos);
     }
 
     @DeleteMapping("/delete/category/{categoryId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteCategory(@PathVariable Long categoryId){
+    public ResponseEntity<Void> deleteCategory(@PathVariable Long categoryId) throws IOException {
         categoryService.deleteCategory(categoryId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
@@ -71,11 +68,7 @@ public class CategoryController {
     public ResponseEntity<CategoryDto> updateRoom(@PathVariable Long categoryId,
                                                   @RequestParam("nameCategory") String nameCategory,
                                                   @RequestParam("imageCategory") MultipartFile photo) throws SQLException, IOException {
-        byte[] photoBytes = photo != null && !photo.isEmpty() ? photo.getBytes() : categoryService.getCategoryPhotoByCategoryId(categoryId);
-
-        Blob photoBlob = photoBytes != null && photoBytes.length > 0 ? new SerialBlob(photoBytes) : null;
-        Category theCategory = categoryService.updateCategory(categoryId, nameCategory, photoBytes);
-        theCategory.setImageCategory(photoBlob);
+        Category theCategory = categoryService.updateCategory(categoryId, nameCategory, photo);
         CategoryDto categoryDto = getCategoryDto(theCategory);
         return ResponseEntity.ok(categoryDto);
     }
@@ -95,17 +88,11 @@ public class CategoryController {
     }
 
     private CategoryDto getCategoryDto(Category category) {
-        byte[] photoBytes = null;
-        Blob photoBlob = category.getImageCategory();
-        if(photoBlob != null){
-            try{
-                photoBytes = photoBlob.getBytes(1, (int) photoBlob.length());
-            } catch (SQLException e){
-                throw  new PhotoRetrievalExcetion("Error retrieving photo");
-            }
-        }
-        return new CategoryDto(category.getId(),
-               category.getNameCategory(), photoBytes);
+        CategoryDto categoryDto = new CategoryDto();
+        categoryDto.setNameCategory(category.getNameCategory());
+        categoryDto.setImageCategory(category.getImageCategory());
+        categoryDto.setId(category.getId());
+        return categoryDto;
     }
 
 }

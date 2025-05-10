@@ -20,8 +20,15 @@ const ProductDetail = () => {
     })
     const paragraphs = product.description.split('-');
     const [quantity, setQuantity] = useState(1)
+    const[quantityNoChange, setQuantityNoChange] = useState({})
 
     const [selectedSize, setSelectedSize] = useState({});
+    const [selectedColor, setSelectedColor] = useState({});
+
+  const handleColorChange = (productId, color) => {
+      setSelectedColor(prevState => ({...prevState, [productId]: color}));
+  }
+
     const [favoriteProducts, setFavoriteProducts] = useState([]);
     const[errorMessage, setErrorMessage] = useState("")
     const[successMessage,setSuccessMessage] = useState("")
@@ -73,13 +80,16 @@ const ProductDetail = () => {
 
       const handleSizeChange = (productId, size) => {
         setSelectedSize(prevState => ({ ...prevState, [productId]: size }));
+        setSelectedColor(prevState => ({...prevState, [productId]: (product.sizeQuantities.length > 0 && product.sizeQuantities[0].colorImageProductDtos.length > 0 ? product.sizeQuantities[0].colorImageProductDtos[0].color : "")}))
+        setQuantityNoChange(prevState => ({...prevState, [productId]:  (product.sizeQuantities.find(sizeQuantity => sizeQuantity.size === size)?.colorImageProductDtos[0] || 0)?.quantity || 0}))
+         
     };
 
-    const handleNewCartItemClick = async (e, productId, quantity, size) =>{
+    const handleNewCartItemClick = async (e, productId, quantity, size, color) =>{
       e.preventDefault()
       const cartId = localStorage.getItem('cartId')
       try {
-        await addCartItem(cartId, productId, quantity, size);
+        await addCartItem(cartId, productId, quantity, size, color);
           toast.success("Thêm vào giỏ hàng thành công!");
       } catch (error) {
           toast.error("Thêm vào giỏ hàng thất bại!");
@@ -113,6 +123,7 @@ const ProductDetail = () => {
       }, [productId])
 
       const selectedProductSize = selectedSize[product.productId] || (product.sizeQuantities.length > 0 ? product.sizeQuantities[0].size : "");
+      const selectedProductColor = selectedColor[product.productId] || (product.sizeQuantities.length > 0 && product.sizeQuantities[0].colorImageProductDtos.length > 0 ? product.sizeQuantities[0].colorImageProductDtos[0].color : "");
   return (
     <>
         <div className = "container-fluid mx-2 mt-4" style = {{borderBottom : "1px solid rgba(0, 0 , 0 ,0.2)"}}>
@@ -129,13 +140,15 @@ const ProductDetail = () => {
             <div className="h-100 w-100">
                 {product.imageProduct && (
                 <img
-                src={`data:image/jpeg;base64,${product.imageProduct}`}
+                src={product.imageProduct}
                 alt={`Photo of ${product.imageProduct}`}
                 style={{ width: '100%', height: '100%',objectFit: "cover"  }}
                 />
                   )}
             </div>
-            {product.disCount !== 0 ? <span className="position-absolute bg-danger text-white" style={{ left: '0px', top: '0px' }}>Giảm {product.disCount} %</span> : ''}
+            {product.disCount !== 0 ? <span className="position-absolute bg-danger text-white" style={{ left: '0px', top: '0px' }}>{product.percentage 
+                  ? `Giảm ${product.disCount}%` 
+                  : `Giảm ${formatCurrency(product.disCount)}`} </span> : ''}
           </div>
           </div>
           <div className = 'col-md-6'>
@@ -168,7 +181,24 @@ const ProductDetail = () => {
                 ))}
             </select>        
             </p>
-            <p><strong>Số Lượng Còn Lại:</strong> {product.sizeQuantities.find(sizeQuantity => sizeQuantity.size === selectedProductSize)?.quantity || 0}</p>
+
+            <p className = 'd-flex align-items-center'><strong>Màu sắc:</strong>
+                <select
+                  value={selectedProductColor[product.productId]}
+                  onChange={(e) => handleColorChange(product.productId, e.target.value)}
+                  className="form-select text-center mx-3"
+                  style={{width: '100px', height: '35px',fontSize: '13px'}}
+                >
+                  {(product.sizeQuantities.find(sq => sq.size === (selectedSize[product.productId] || selectedProductSize))?.colorImageProductDtos || [])
+                    .map((colorProduct) => (
+                    <option key={colorProduct.id} value={colorProduct.color} style={{fontSize: '13px'}}>
+                      {colorProduct.color}
+                    </option>
+                      ))
+                      }
+
+                </select>
+            </p>
             <div>
                 <span className="bi bi-star-fill" style = {{color:'orange'}}></span>
                 <span className="bi bi-star-fill" style = {{color:'orange'}}></span>
@@ -188,7 +218,7 @@ const ProductDetail = () => {
               <button className="btn btn-outline-primary" onClick={increaseQuantity}>+</button>
             </div>
             <div className = 'mt-5 d-flex align-items-center pb-3 '>
-                <button className=" mx-1 btn btn-primary" onClick={(e) => handleNewCartItemClick(e, product.productId, quantity, selectedProductSize)}>Thêm vào giỏ hàng</button>
+                <button className=" mx-1 btn btn-primary" onClick={(e) => handleNewCartItemClick(e, product.productId, quantity, selectedProductSize, selectedColor[product.productId])}>Thêm vào giỏ hàng</button>
                 <button className={`mx-4 d-flex align-items-center favorite-button ${favoriteProducts.includes(product.productId) ? 'favorited' : ''}`}
                     onClick={(e) => handleFavoriteClick(e, product.productId)}
                  style={{fontSize:'25px', backgroundColor: 'transparent', border: 'none' }}><i class="bi bi-heart-fill mx-2" style={{ color: favoriteProducts.includes(product.productId) ? 'red' : 'white' }}></i><p className = 'text-black m-0'>Yêu thích</p></button>

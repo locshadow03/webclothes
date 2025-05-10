@@ -5,9 +5,11 @@ import com.shopclothes.extension.UserNotFoundException;
 import com.shopclothes.model.Customer;
 import com.shopclothes.model.Role;
 import com.shopclothes.model.User;
+import com.shopclothes.model.Wallet;
 import com.shopclothes.repository.CustomerRepository;
 import com.shopclothes.repository.RoleRepository;
 import com.shopclothes.repository.UserRepository;
+import com.shopclothes.repository.WalletRepository;
 import com.shopclothes.service.JWTUtils;
 import com.shopclothes.service.customer.ICustomerService;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,6 +32,9 @@ public class UserServiceImpl implements IUserService{
     private PasswordEncoder passwordEncoder;
     @Autowired
     private UserRepository userRepository;
+
+    @Autowired
+    private WalletRepository walletRepository;
 
     @Autowired
     private ICustomerService customerService;
@@ -57,7 +62,8 @@ public class UserServiceImpl implements IUserService{
             user.setEmail(registrationRequest.getEmail());
             user.setUsername(registrationRequest.getUsername());
             user.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
-            user.setRoles(Arrays.asList(roleRepository.findByName("USER")));
+            user.setAction(true);
+            user.setRoles(Arrays.asList(roleRepository.findByName("ADMIN")));
             User userResult = userRepository.save(user);
             Customer customer = customerService.updateCustomer(userResult.getId(), null, null, null, null, null);
             if(userResult.getId() > 0){
@@ -65,6 +71,12 @@ public class UserServiceImpl implements IUserService{
                 userDto.setMessage("User Saved Successfully");
                 userDto.setStatusCode(200);
             }
+
+            Wallet wallet = new Wallet();
+            wallet.setUser(user);
+            wallet.setBalance(0.0);
+            walletRepository.save(wallet);
+
         } catch(Exception e){
             userDto.setStatusCode(500);
             userDto.setError(e.getMessage());
@@ -89,14 +101,26 @@ public class UserServiceImpl implements IUserService{
             String jwt = jwtUtils.generateToken(user);
             String refreshToken = jwtUtils.generateRefreshToken(new HashMap<>(), user);
 
-            response.setId(user.getId());
-            response.setStatusCode(200);
-            response.setToken(jwt);
-            response.setUsername(user.getUsername());
-            response.setRole(user.getRoles().toString());
-            response.setRefreshToken(refreshToken);
-            response.setExpirationTime("24Hrs");
-            response.setMessage("Successfully Logged In");
+            if(user.isAction()){
+                response.setId(user.getId());
+                response.setStatusCode(200);
+                response.setToken(jwt);
+                response.setUsername(user.getUsername());
+                response.setRole(user.getRoles().toString());
+                response.setRefreshToken(refreshToken);
+                response.setExpirationTime("24Hrs");
+                response.setMessage("Đăng nhập thành công!");
+            } else{
+                response.setId(user.getId());
+                response.setStatusCode(200);
+                response.setToken(jwt);
+                response.setUsername(user.getUsername());
+                response.setRole(user.getRoles().toString());
+                response.setRefreshToken(refreshToken);
+                response.setExpirationTime("24Hrs");
+                response.setStatusCode(407);
+                response.setMessage("Tài khoản của bạn đã bị khóa!");
+            }
         } catch (UsernameNotFoundException e) {
             response.setStatusCode(404);
             response.setMessage("Không tồn tại tài khoản: " + loginRequest.getUsername());
@@ -209,6 +233,18 @@ public class UserServiceImpl implements IUserService{
         }
     }
 
+    public void updateAction(Long id, boolean action) throws UserNotFoundException {
+        Optional<User> optionalUser = userRepository.findById(id);
+        if (optionalUser.isPresent()) {
+            User user = optionalUser.get();
+            user.setAction(action);
+            userRepository.save(user);
+
+        } else {
+            throw new UserNotFoundException("Không tìm thấy người dùng với id: " + id);
+        }
+    }
+
 
     @Override
     public Optional<UserDto> getUserById(Long userId) {
@@ -227,6 +263,7 @@ public class UserServiceImpl implements IUserService{
         UserDto userDto = new UserDto();
         userDto.setUsername(user.getUsername());
         userDto.setEmail(user.getEmail());
+        userDto.setAction(user.isAction());
         String roles = user.getRoles().stream()
                 .map(Role::getName)
                 .collect(Collectors.joining(", "));
@@ -244,6 +281,7 @@ public class UserServiceImpl implements IUserService{
             userDto.setId(user.getId());
             userDto.setUsername(user.getUsername());
             userDto.setEmail(user.getEmail());
+            userDto.setAction(user.isAction());
             userDto.setCreatedAt(user.getCreatedAt());
             userDto.setUpdatedAt(user.getUpdatedAt());
             String roles = user.getRoles().stream()

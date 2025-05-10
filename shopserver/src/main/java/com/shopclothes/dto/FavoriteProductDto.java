@@ -25,11 +25,12 @@ public class FavoriteProductDto {
         this.productImage = productImage;
     }
 
-    public FavoriteProductDto(Long id, String productName, double disCount, double price, byte[] photoBytes) {
+    public FavoriteProductDto(Long id, String productName, double disCount, double price, String file) {
         this.id = id;
         this.productName = productName;
         this.disCount = disCount;
         this.price = price;
-        this.productImage = photoBytes != null ? Base64.getEncoder().encodeToString(photoBytes) : null;
+//        this.productImage = photoBytes != null ? Base64.getEncoder().encodeToString(photoBytes) : null;
+        this.productImage = file;
     }
 }

@@ -14,7 +14,8 @@ const EditProduct = () => {
         sizeQuantities: [],
         nameBrand:"",
         disCount:"",
-        imageProduct: ""
+        imageProduct: "",
+        colorImageProducts: []
 
     })
 
@@ -42,7 +43,7 @@ const EditProduct = () => {
           const productData = await getProductById(productId)
           setProduct(productData)
           
-          setImagePreview(`data:image/jpeg;base64,${productData.imageProduct}`)
+          setImagePreview(productData.imageProduct)
         } catch (error) {
           console.error(error)
         }
@@ -53,12 +54,14 @@ const EditProduct = () => {
     const handleSubmit = async (e) => {
       e.preventDefault()
       try {
+
+          
           const response = await updateProduct(productId,product)
           if (response.status === 200){
             setSuccessMessage("product updated successfully!")
             const updateProductData = await getProductById(productId)
             setProduct(updateProductData)
-			setImagePreview(`data:image/jpeg;base64,${updateProductData.imageProduct}`)
+			setImagePreview(updateProductData.imageProduct)
               setErrorMessage("")
           } else {
               setErrorMessage("Error updating product")
@@ -75,12 +78,69 @@ const EditProduct = () => {
     setProduct({ ...product, sizeQuantities: updatedSizeQuantities });
 };
 
-const handleAddSizeQuantity = () => {
+const handleColorChange = (value, sizeIndex, colorIndex) => {
+    const updatedSizeQuantities = [...product.sizeQuantities];
+    updatedSizeQuantities[sizeIndex].colorImageProductDtos[colorIndex].color = value;
+    setProduct({ ...product, sizeQuantities: updatedSizeQuantities });
+  };
+  
+  // Thay đổi số lượng theo màu
+  const handleColorQuantityChange = (value, sizeIndex, colorIndex) => {
+    const updatedSizeQuantities = [...product.sizeQuantities];
+    updatedSizeQuantities[sizeIndex].colorImageProductDtos[colorIndex].quantity = parseInt(value);
+    setProduct({ ...product, sizeQuantities: updatedSizeQuantities });
+  };
+
+const handleColorImageChange = (file, sizeIndex, colorIndex) => {
+    const updatedSizeQuantities = [...product.sizeQuantities];
+
+  updatedSizeQuantities[sizeIndex].colorImageProductDtos[colorIndex].imageProduct = file;
+  updatedSizeQuantities[sizeIndex].colorImageProductDtos[colorIndex].previewUrl = URL.createObjectURL(file);
+
+  setProduct({ ...product, sizeQuantities: updatedSizeQuantities });
+  };
+
+  const handleRemoveColor = (sizeIndex, colorIndex) => {
+    const updated = [...product.sizeQuantities];
+    const currentColors = updated[sizeIndex]?.colorImageProductDtos || [];
+    updated[sizeIndex].colorImageProductDtos = currentColors.filter((_, idx) => idx !== colorIndex);
+    if (updated[sizeIndex].colorImageProductDtos.length === 0) {
+        updated[sizeIndex].colorImageProductDtos = [];
+    }
+    setProduct({ ...product, sizeQuantities: updated });
+  };
+
+  const handleAddSizeQuantity = () => {
     setProduct({
         ...product,
-        sizeQuantities: [...product.sizeQuantities, { size: "", quantity: "" }]
+        sizeQuantities: [
+            ...product.sizeQuantities,
+            {
+                size: "",
+                colorImageProductDtos: [
+                    {
+                        color: "",
+                        imageProduct: null,
+                        quantity: "",
+                        previewUrl: null
+                    }
+                ]
+            }
+        ]
     });
 };
+
+
+const handleAddColor = (sizeIndex) => {
+    const updatedSizeQuantities = [...product.sizeQuantities];
+    updatedSizeQuantities[sizeIndex].colorImageProductDtos.push({
+        color: "", 
+        imageProduct: null,
+        quantity: 0
+    });
+    setProduct({ ...product, sizeQuantities: updatedSizeQuantities });
+};
+
 
 const handleRemoveSizeQuantity = (index) => {
     const updatedSizeQuantities = product.sizeQuantities.filter((_, idx) => idx !== index);
@@ -184,38 +244,107 @@ const handleRemoveSizeQuantity = (index) => {
 
                     <div className='mb-3'>
                         <label htmlFor='sizeQuantities' className='form-label'>Sizes and Quantities</label>
-                        {product.sizeQuantities.map((sizeQuantity, index) => (
-                            <div key={index} className='d-flex mb-2'>
+                        {product.sizeQuantities.map((sizeQuantity, index) => {
+
+                        return (
+                        <div key={index} className='border rounded p-3 mb-3'>
+                            <div className='d-flex justify-content-between align-items-center mb-2'>
+                            <div className="col-md-2">
+                            <label className="form-label"><strong>Size:</strong></label>
+                            <input
+                                type="text"
+                                className="form-control"
+                                value={sizeQuantity.size}
+                                onChange={(e) => handleSizeQuantityChange(index, 'size', e.target.value)}
+                            />
+                            </div>
+                            <button
+                                type="button"
+                                className='btn btn-danger btn-sm'
+                                onClick={() => handleRemoveSizeQuantity(index)}
+                            >
+                                Remove Size
+                            </button>
+                            </div>
+
+                            {sizeQuantity.colorImageProductDtos.length > 0 ? (sizeQuantity.colorImageProductDtos.map((color, idx) => (
+                            <div key={idx} className='row align-items-center mb-3'>
+                                <div className='col-md-3'>
+                                <label className='form-label'>Color</label>
                                 <input
                                     type="text"
-                                    className='form-control mr-2'
-                                    placeholder="Size"
-                                    value={sizeQuantity.size}
-                                    onChange={(e) => handleSizeQuantityChange(index, 'size', e.target.value)}
+                                    className='form-control'
+                                    value={color.color}
+                                    onChange={(e) => handleColorChange(e.target.value, index, idx)}
                                 />
+                                </div>
+
+                                <div className='col-md-3'>
+                                <label className='form-label'>Quantity</label>
                                 <input
                                     type="number"
                                     className='form-control'
-                                    placeholder="Quantity"
-                                    value={sizeQuantity.quantity}
-                                    onChange={(e) => handleSizeQuantityChange(index, 'quantity', e.target.value)}
+                                    value={color.quantity}
+                                    onChange={(e) => handleColorQuantityChange(e.target.value, index, idx)}
                                 />
+                                </div>
+
+                                <div className='col-md-3'>
+                                <label className='form-label'>Color Image</label><br />
+                                {color.previewUrl || color.imageProduct ? (
+                                    <img
+                                        src={color.previewUrl || color.imageProduct}
+                                        alt="Color"
+                                        className="img-thumbnail mb-2"
+                                        style={{ width: "100px", height: "100px", objectFit: "cover" }}
+                                    />
+                                    ) : (
+                                    <div className="text-muted mb-2">No image</div>
+                                    )}
+
+                                <input
+                                    type="file"
+                                    className='form-control'
+                                    
+                                    onChange={(e) => handleColorImageChange(e.target.files[0], index, idx)}
+                                />
+                                </div>
+
                                 <button
-                                    type="button"
-                                    className='btn btn-danger ml-2'
-                                    onClick={() => handleRemoveSizeQuantity(index)}
-                                >
-                                    Remove
+                                        type="button"
+                                        onClick={() => handleRemoveColor(index, idx)}
+                                        className="btn btn-outline-success btn-sm mb-2"
+                                        style={{ width: "180px" }}
+                                    >
+                                        Xóa màu
                                 </button>
+
+
                             </div>
-                        ))}
-                        <button
-                            type="button"
-                            className='btn btn-secondary'
-                            onClick={handleAddSizeQuantity}
-                        >
-                            Add Size
-                        </button>
+                            ))
+                            ) : (
+                            <div>Bạn cần thêm màu!.</div>
+                            )}
+
+                            <button
+                                type="button"
+                                onClick={() => handleAddColor(index)}
+                                className="btn btn-outline-success btn-sm mb-2" 
+                                style={{width: '180px'}}
+                            >
+                                Thêm màu
+                            </button>
+                        </div>
+                        );
+                    })}
+
+                    <button
+                        type="button"
+                        className='btn btn-secondary mt-2'
+                        onClick={handleAddSizeQuantity}
+                    >
+                        Add Size
+                    </button>
                     </div>
 
 
@@ -228,8 +357,8 @@ const handleRemoveSizeQuantity = (index) => {
                     <div className='mb-3'>
                         <label htmlFor='photo' className='form-label'>Product Photo</label>
                         <input
-                            id="photo"
-                            name="photo"
+                            id="imageProduct"
+                            name="imageProduct"
                             type="file"
                             className='form-control'
                             onChange={handleImageChange}

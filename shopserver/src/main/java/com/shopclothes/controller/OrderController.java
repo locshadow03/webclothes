@@ -42,7 +42,7 @@ public class OrderController {
 
         customerRepository.save(existingCustomer);
 
-        Order order = orderService.createOrder(customer, items);
+        Order order = orderService.createOrder(customer, items, request.getPaymentMethod());
         OrderDto orderDto = new OrderDto();
         orderDto.setCustomerId(order.getCustomer().getId());
         orderDto.setTotalAmount(order.getTotalAmount());
@@ -65,7 +65,9 @@ public class OrderController {
             orderDto.setPhoneNumber(order.getCustomer().getPhoneNumber());
             orderDto.setAddress(order.getCustomer().getAddress());
             orderDto.setStatusOrder(order.getStatus());
-            orderDto.setTotalAmount(orderService.calculateTotalAmount(order.getItems()));
+            orderDto.setPaymentStatus(order.getPaymentStatus());
+            orderDto.setPaymentMethod(order.getPaymentMethod().getDescription());
+            orderDto.setTotalAmount(order.getTotalAmount());
             orderDto.setOrderDate(order.getOrderDate());
             orderDtos.add(orderDto);
         }
@@ -102,26 +104,30 @@ public class OrderController {
         orderDto.setPhoneNumber(order.getCustomer().getPhoneNumber());
         orderDto.setAddress(order.getCustomer().getAddress());
         orderDto.setStatusOrder(order.getStatus());
-        orderDto.setTotalAmount(orderService.calculateTotalAmount(order.getItems()));
+        orderDto.setPaymentMethod(order.getPaymentMethod().getDescription());
+        orderDto.setPaymentStatus(order.getPaymentStatus());
+        orderDto.setTotalAmount(order.getTotalAmount());
         orderDto.setOrderDate(order.getOrderDate());
         List<OrderItemDto> orderItemsDto = order.getItems().stream().map(item -> {
             OrderItemDto dto = new OrderItemDto();
-            byte[] photoBytes = new byte[0];
-            try {
-                photoBytes = productService.getProductPhotoById(item.getProduct().getId());
-            } catch (SQLException e) {
-                throw new RuntimeException(e);
-            }
-            if (photoBytes != null && photoBytes.length > 0) {
-                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-                dto.setImageProduct(base64Photo);
-            }
+//            byte[] photoBytes = new byte[0];
+//            try {
+//                photoBytes = productService.getProductPhotoById(item.getProduct().getId());
+//            } catch (SQLException e) {
+//                throw new RuntimeException(e);
+//            }
+//            if (photoBytes != null && photoBytes.length > 0) {
+//                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
+//                dto.setImageProduct(base64Photo);
+//            }
+            dto.setImageProduct(item.getProduct().getImageProduct());
             dto.setProductId(item.getProduct().getId());
             dto.setProductName(item.getProduct().getName());
             dto.setSize(item.getSize());
             dto.setQuantity(item.getQuantity());
             dto.setDisCount(item.getProduct().getDisCount());
-            dto.setPrice(item.getProduct().getPrice());
+            dto.setPrice(item.getPrice());
+            dto.setColor(item.getColor());
             return dto;
         }).collect(Collectors.toList());
 
@@ -149,8 +155,10 @@ public class OrderController {
             orderDto.setPhoneNumber(order.getCustomer().getPhoneNumber());
             orderDto.setAddress(order.getCustomer().getAddress());
             orderDto.setStatusOrder(order.getStatus());
-            orderDto.setTotalAmount(orderService.calculateTotalAmount(order.getItems()));
+            orderDto.setTotalAmount(order.getTotalAmount());
             orderDto.setOrderDate(order.getOrderDate());
+            orderDto.setPaymentStatus(order.getPaymentStatus());
+            orderDto.setPaymentMethod(order.getPaymentMethod().getDescription());
             orderDtos.add(orderDto);
         }
 
@@ -262,11 +270,12 @@ public class OrderController {
             topProductOrderDto.setNameProduct(productResponse.getProduct().getName());
             topProductOrderDto.setPrice(productResponse.getProduct().getPrice());
             topProductOrderDto.setDiscount(productResponse.getProduct().getDisCount());
-            byte[] photoBytes = productService.getProductPhotoById(productResponse.getProduct().getId());
-            if (photoBytes != null && photoBytes.length > 0) {
-                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-                topProductOrderDto.setImg(base64Photo);
-            }
+//            byte[] photoBytes = productService.getProductPhotoById(productResponse.getProduct().getId());
+//            if (photoBytes != null && photoBytes.length > 0) {
+//                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
+//                topProductOrderDto.setImg(base64Photo);
+//            }
+            topProductOrderDto.setImg(productResponse.getProduct().getImageProduct());
             topProductOrderDto.setTotalProductOrder(productResponse.getTotalProduct());
 
             topProductOrderDtos.add(topProductOrderDto);
@@ -287,11 +296,12 @@ public class OrderController {
             topProductOrderDto.setNameProduct(productResponse.getProduct().getName());
             topProductOrderDto.setPrice(productResponse.getProduct().getPrice());
             topProductOrderDto.setDiscount(productResponse.getProduct().getDisCount());
-            byte[] photoBytes = productService.getProductPhotoById(productResponse.getProduct().getId());
-            if (photoBytes != null && photoBytes.length > 0) {
-                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-                topProductOrderDto.setImg(base64Photo);
-            }
+//            byte[] photoBytes = productService.getProductPhotoById(productResponse.getProduct().getId());
+//            if (photoBytes != null && photoBytes.length > 0) {
+//                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
+//                topProductOrderDto.setImg(base64Photo);
+//            }
+            topProductOrderDto.setImg(productResponse.getProduct().getImageProduct());
             topProductOrderDto.setTotalProductOrder(productResponse.getTotalProduct());
 
             topProductOrderDtos.add(topProductOrderDto);
@@ -312,11 +322,12 @@ public class OrderController {
             topProductOrderDto.setNameProduct(productResponse.getProduct().getName());
             topProductOrderDto.setPrice(productResponse.getProduct().getPrice());
             topProductOrderDto.setDiscount(productResponse.getProduct().getDisCount());
-            byte[] photoBytes = productService.getProductPhotoById(productResponse.getProduct().getId());
-            if (photoBytes != null && photoBytes.length > 0) {
-                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-                topProductOrderDto.setImg(base64Photo);
-            }
+//            byte[] photoBytes = productService.getProductPhotoById(productResponse.getProduct().getId());
+//            if (photoBytes != null && photoBytes.length > 0) {
+//                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
+//                topProductOrderDto.setImg(base64Photo);
+//            }
+            topProductOrderDto.setImg(productResponse.getProduct().getImageProduct());
             topProductOrderDto.setTotalProductOrder(productResponse.getTotalProduct());
 
             topProductOrderDtos.add(topProductOrderDto);
@@ -337,11 +348,12 @@ public class OrderController {
             topProductOrderDto.setNameProduct(productResponse.getProduct().getName());
             topProductOrderDto.setPrice(productResponse.getProduct().getPrice());
             topProductOrderDto.setDiscount(productResponse.getProduct().getDisCount());
-            byte[] photoBytes = productService.getProductPhotoById(productResponse.getProduct().getId());
-            if (photoBytes != null && photoBytes.length > 0) {
-                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-                topProductOrderDto.setImg(base64Photo);
-            }
+//            byte[] photoBytes = productService.getProductPhotoById(productResponse.getProduct().getId());
+//            if (photoBytes != null && photoBytes.length > 0) {
+//                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
+//                topProductOrderDto.setImg(base64Photo);
+//            }
+            topProductOrderDto.setImg(productResponse.getProduct().getImageProduct());
             topProductOrderDto.setTotalProductOrder(productResponse.getTotalProduct());
 
             topProductOrderDtos.add(topProductOrderDto);

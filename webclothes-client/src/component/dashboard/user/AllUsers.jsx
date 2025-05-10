@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { FaEdit, FaEye, FaTrashAlt} from 'react-icons/fa';
-import { getAllUsers, updateRole } from '../../../api/User';
+import { getAllUsers, updateAction, updateRole } from '../../../api/User';
 import ProductPaginator from '../../common/ProductPaginator';
 import { getCustomerById } from '../../../api/Customer';
 const AllUsers = () => {
 
     const[users, setUsers] = useState([])
+    const[action, setAction] = useState("")
 
     const [userDetail, setUserDetail] = useState("");
 
@@ -69,6 +70,25 @@ const AllUsers = () => {
         }
     }
 
+    const handleToggleAction = async (userId) => {
+        try {
+          const updatedUsers = users.map((user) => {
+            if (user.id === userId) {
+              const newAction = !user.action;
+              updateAction(userId, newAction);
+              return { ...user, action: newAction };
+            }
+            return user;
+          });
+      
+          // Cập nhật lại danh sách users
+          setUsers(updatedUsers);
+        } catch (error) {
+          console.error("Toggle thất bại:", error);
+        }
+      };
+      
+
 
   return (
     <>
@@ -88,9 +108,6 @@ const AllUsers = () => {
         <div className=''>
             <h4>Danh sách người dùng</h4>
         </div>      
-        <Link to = "/dashboard/brand/add/new-brand" className = "btn btn-primary">
-            Add user
-        </Link>
         </div>
         {/* <p className='mx-5 my-3 fw-bold'>Tổng số thương hiệu: {totalBrands}</p> */}
     <div className = "mx-5 mt-4">
@@ -134,11 +151,15 @@ const AllUsers = () => {
                                     <FaEye />
                                 </button>
                             
-                                <button
-                                    className='btn btn-danger btn-sm mx-2'
-                                    >
-                                    <FaTrashAlt />
-                                </button>
+                                <label className="switch">
+                                    <input
+                                        type="checkbox"
+                                        checked={user.action}
+                                        onChange={() => handleToggleAction(user.id)}
+                                    />
+                                    <span className="slider round"></span>
+                                </label>
+
                             </td>
                         </tr>
                     ))}

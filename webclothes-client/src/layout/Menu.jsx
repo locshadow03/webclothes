@@ -13,6 +13,8 @@ const Menu = () => {
         setActiveItem('danh-sach-thuong-hieu');
       } else if (location.pathname === '/dashboard/products') {
         setActiveItem('danh-sach-san-pham');
+      } else if (location.pathname === '/dashboard/event') {
+        setActiveItem('danh-sach-cac-event');
       } else if (location.pathname === '/dashboard/user') {
         setActiveItem('quan-ly-nguoi-dung');
       } else if (location.pathname === '/dashboard/order') {
@@ -66,6 +68,12 @@ const Menu = () => {
                     <Link to = "/dashboard/product" className="nav-link d-block" style={{ display: 'flex', alignItems: 'center' }} onClick={() => handleItemClick('danh-sach-san-pham')}>
                       <i className="bi bi-cart-fill mx-1 fw-bold"></i>
                       <span className='fw-bold'>Danh sách sản phẩm</span>
+                    </Link>
+                  </li>
+                  <li className={`mt-2 nav-item ${activeItem === 'danh-sach-cac-event' ? 'active' : ''}`} style={{ listStyleType: 'none' }}>
+                    <Link to = "/dashboard/event" className="nav-link d-block" style={{ display: 'flex', alignItems: 'center' }} onClick={() => handleItemClick('danh-sach-cac-event')}>
+                      <i className="bi bi-calendar3-event-fill mx-1 fw-bold"></i>
+                      <span className='fw-bold'>Danh sách các event</span>
                     </Link>
                   </li>
                   <li className={`mt-2 nav-item ${activeItem === 'danh-sach-don-hang' ? 'active' : ''}`} style={{ listStyleType: 'none' }}>

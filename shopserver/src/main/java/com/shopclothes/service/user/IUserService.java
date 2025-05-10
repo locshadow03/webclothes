@@ -19,6 +19,8 @@ public interface IUserService {
     void updateRole(Long id, String role) throws UserNotFoundException;
 
     Optional<UserDto> getUserById(Long userId);
+    void updateAction(Long id, boolean action) throws UserNotFoundException;
+
 
     List<UserDto> allUser();
 

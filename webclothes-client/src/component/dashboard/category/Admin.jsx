@@ -96,7 +96,7 @@ const Admin = () => {
                             <td>
                                 {category.imageCategory && (
                                     <img
-                                        src={`data:image/jpeg;base64,${category.imageCategory}`}
+                                        src={category.imageCategory}
                                         alt={`Photo of ${category.nameCategory}`}
                                         style={{ width: '40px', height: '35px' }}
                                     />
@@ -148,7 +148,7 @@ const Admin = () => {
                                     />
                                     {categoryDetail && categoryDetail.imageCategory && (
                                         <img
-                                            src={`data:image/jpeg;base64,${categoryDetail.imageCategory}`}
+                                            src={categoryDetail.imageCategory}
                                             alt={`Preview Category Photo`}
                                             style={{ maxWidth: '300px', maxHeight: '300px' }}
                                             className='mb-3'           

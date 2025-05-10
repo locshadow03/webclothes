@@ -52,14 +52,21 @@ const HeaderHome = () => {
 
   const fetchCategorys = async (id) => {
     try {
-      const result = await getAllCategores();
       const customerData = await getCustomerById(id);
       setCustomerDetail(customerData || null);
-      setCategories(result);
     } catch (error) {
-      console.error('Error fetching categories or customer data:', error);
+      console.error('Error fetching customer data:', error);
     }
   };
+
+  const fetchCategory = async () =>{
+    try {
+      const result = await getAllCategores();
+      setCategories(result);
+    } catch (error) {
+      console.error('Error fetching categories data:', error);
+    }
+  }
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -80,6 +87,11 @@ const HeaderHome = () => {
       fetchCarts()
     }
   }, [userId]);
+
+  useEffect(() => {
+    fetchCategory()
+  }, []);
+
 
   const handleLogout = async () => {
     try {

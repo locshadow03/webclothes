@@ -20,6 +20,7 @@ import java.util.List;
 public class UserDto {
     private Long id;
     private  int statusCode;
+    private boolean action;
     private String error;
     private String message;
     private String token;

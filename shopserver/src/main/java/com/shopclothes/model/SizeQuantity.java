@@ -5,6 +5,8 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -19,17 +21,13 @@ public class SizeQuantity {
     @Column(nullable = false)
     private String size;
 
-    @Column(nullable = false)
-    private int quantity;
+    @OneToMany(mappedBy = "sizeQuantity" , fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ColorImageProduct> colorImageProducts;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "product_id", nullable = false)
     private Product product;
 
-    public SizeQuantity(String size, int quantity, Product product) {
-        this.size = size;
-        this.quantity = quantity;
-        this.product = product;
-    }
+
 }
 

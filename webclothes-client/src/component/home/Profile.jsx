@@ -102,12 +102,12 @@ const Profile = () => {
             <div className=' mx-3 mt-3 py-1' style = {{boxShadow: '0 4px 4px -2px rgba(0, 0, 0, 0.1)'}}>
                 <h5>Quản lý hồ sơ của tôi</h5>
                 {successMessage && (
-                    <div className="alert alert-success mx-5" role="alert">
+                    <div className="alert alert-success" role="alert">
                         {successMessage}
                     </div>
                 )}
                 {errorMessage && (
-                    <div className="alert alert-danger mx-5" role="alert">
+                    <div className="alert alert-danger" role="alert">
                         {errorMessage}
                     </div>
                 )}

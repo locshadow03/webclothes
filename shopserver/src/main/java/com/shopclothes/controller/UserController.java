@@ -49,6 +49,13 @@ public class UserController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    @PostMapping("/update/user/action/{userId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<Void> updateUserAction(@PathVariable Long userId,@RequestParam("action") Boolean action) throws UserNotFoundException {
+        userService.updateAction(userId, action);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
     @GetMapping("total_user")
     public ResponseEntity<TotalUser> getTotalUser(){
         TotalUser totalUser = new TotalUser();

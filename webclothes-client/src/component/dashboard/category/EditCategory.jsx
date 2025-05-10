@@ -31,7 +31,7 @@ const EditCategory = () => {
         try {
           const categoryData = await getCategoryById(categoryId)
           setCategory(categoryData)
-          setImagePreview(`data:image/jpeg;base64,${categoryData.imageCategory}`)
+          setImagePreview(categoryData.imageCategory)
         } catch (error) {
           console.error(error)
         }
@@ -44,10 +44,10 @@ const EditCategory = () => {
       try {
           const response = await updateCategory(categoryId, category)
           if (response.status === 200){
-              setSuccessMessage("Category updated successfully!")
+              setSuccessMessage("Cập nhật danh mục sản phẩm thành công!")
               setErrorMessage("")
           } else {
-              setErrorMessage("Error updating category")
+              setErrorMessage("Quá trình cập nhật xảy ra lỗi vui lòng thử lại!")
           }
       } catch (error) {
           setErrorMessage(error.message)

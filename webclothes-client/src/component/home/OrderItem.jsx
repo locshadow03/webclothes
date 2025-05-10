@@ -23,7 +23,11 @@ const OrderItem = ({order, onViewDetails, onConfirmDelete}) => {
                         <td>{order.address}</td>
                         
                         <td className = 'text-warning'>
-                            {order.statusOrder}
+                            {order.paymentStatus}
+                         </td>
+
+                         <td className = 'text-primary'>
+                            {order.paymentMethod}
                          </td>
 
                         <td className='text-danger'>{formatCurrency(order.totalAmount)}</td>

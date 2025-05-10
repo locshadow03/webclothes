@@ -217,7 +217,7 @@ const ProductFilter = () => {
                         <Link to={`/home/product-detail/${product.productId}`}   className="h-100 w-100">
                         {product.imageProduct && (
                             <img
-                            src={`data:image/jpeg;base64,${product.imageProduct}`}
+                            src={product.imageProduct}
                             alt={`Photo of ${product.imageProduct}`}
                             style={{ width: '100%', height: '100%',objectFit: "cover"  }}
                             />

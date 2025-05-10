@@ -52,7 +52,7 @@ public class CartImpl implements ICartService{
         return cartRepository.findByCustomerId(customerId);
     }
 
-    public Cart addProductToCart(Long cartId, Long productId, int quantity, String size) {
+    public Cart addProductToCart(Long cartId, Long productId, int quantity, String size, String color) {
 
         Cart cart = cartRepository.findById(cartId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy giỏ hàng!"));
@@ -62,9 +62,9 @@ public class CartImpl implements ICartService{
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy sản phẩm"));
 
         CartItem cartItem = cart.getCartItems().stream()
-                .filter(item -> item.getProduct().getId().equals(product.getId()) && item.getSize().equals(size))
+                .filter(item -> item.getProduct().getId().equals(product.getId()) && item.getSize().equals(size) && item.getColor().equals(color))
                 .findFirst()
-                .orElse(new CartItem(cart, product, size, quantity, product.getPrice()));
+                .orElse(new CartItem(cart, product, size, quantity, product.getPrice(), color));
 
 
         if (cartItem.getId() != null) {
@@ -103,12 +103,13 @@ public class CartImpl implements ICartService{
 
     @Override
     @Transactional
-    public void updateProductQuantity(Long cartId, Long cartItemId, int quantity,  String size) {
+    public void updateProductQuantity(Long cartId, Long cartItemId, int quantity,  String size, String color) {
         Cart cart = cartRepository.findById(cartId).orElseThrow(() -> new RuntimeException("Không tìm thấy giỏ hàng!"));
         cart.getCartItems().forEach(item -> {
             if (item.getId().equals(cartItemId)) {
                 item.setQuantity(quantity);
                 item.setSize(size);
+                item.setColor(color);
                 cartItemRepository.save(item);
             }
         });

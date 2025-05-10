@@ -42,6 +42,7 @@ public class SecurityConfig {
                                 , "/dashboard/categories/category/**"
                                 ,"/dashboard/products/all-products"
                                 ,"/dashboard/products/product/**"
+                                ,"/uploads/**"
                                 ,"/auth/**").permitAll()
                         .requestMatchers("/dashboard/brands/add/new-brand").hasAuthority("ADMIN")
                         .requestMatchers("/dashboard/brands/delete/brand/**").hasAuthority("ADMIN")

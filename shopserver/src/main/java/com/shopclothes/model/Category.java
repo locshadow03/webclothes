@@ -21,10 +21,12 @@ public class Category {
     @Column(nullable = false, unique = true)
     private String nameCategory;
 
-    @Lob
+//    @Lob
+//    @Column(nullable = false)
+//    private Blob imageCategory;
     @Column(nullable = false)
-    private Blob imageCategory;
-
+    private String imageCategory;
+    
     @OneToMany(mappedBy = "category")
     private List<Product> products;
 }

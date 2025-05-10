@@ -13,12 +13,19 @@ const AllProducts = () => {
     const [productDetail, setProductDetail] = useState("");
 
     const [selectedSize, setSelectedSize] = useState({});
+    
+    const[selectedColor, setSelectedColor] = useState({});
+    const[quantity, setQuantity] = useState({})
 
+    
     const handleViewDetail = async (productId) => {
         try {
             const productData = await getProductById(productId);
             const defaultSize = productData.sizeQuantities.length > 0 ? productData.sizeQuantities[0].size : "";
-            setSelectedSize({ [productId]: defaultSize });
+            const defaultColor = productData.sizeQuantities.length > 0 && productData.sizeQuantities[0].colorImageProductDtos.length > 0 ? productData.sizeQuantities[0].colorImageProductDtos[0].color : "";
+            console.log('Hiển thị ', productData.sizeQuantities[0].colorImageProductDtos[0].color);
+            setSelectedSize({[productId]: defaultSize});
+            setSelectedColor({[productId]: defaultColor});
             setProductDetail(productData);
         } catch (error) {
             console.error('Error fetching product detail:', error);
@@ -34,10 +41,12 @@ const AllProducts = () => {
         try{
             const result = await getAllProducts()
             setProducts(result)
+            
         }catch(error){
             setErrorMessage(error.message)
         }
     }
+
 
     const handleDelete = async(productId) =>{
         try{
@@ -71,9 +80,17 @@ const AllProducts = () => {
     const indexOfFirstProduct = indexOfLastProduct - productsPerPage;
     const currentProducts = products.slice(indexOfFirstProduct, indexOfLastProduct);
 
-    const handleSizeChange = (productId, size) => {
+    const handleSizeChange = (product, productId, size) => {
         setSelectedSize(prevState => ({ ...prevState, [productId]: size }));
+        setSelectedColor(prevState => ({...prevState, [productId]: (product.sizeQuantities.length > 0 && product.sizeQuantities[0].colorImageProductDtos.length > 0 ? product.sizeQuantities[0].colorImageProductDtos[0].color : "")}))
+        setQuantity(prevState => ({...prevState, [productId]:  (product.sizeQuantities.find(sizeQuantity => sizeQuantity.size === size)?.colorImageProductDtos[0] || 0)?.quantity || 0}))
+         
     };
+
+    const handleColorChange = (product, productId, color) => {
+        setSelectedColor(prevState => ({...prevState, [productId]: color}));
+        setQuantity(prevState => ({...prevState, [productId]: (product.sizeQuantities.find(sizeQuantity => sizeQuantity.size === selectedSize[product.productId])?.colorImageProductDtos || []).find(colorProduct => colorProduct.color === selectedColor[product.productId] )?.quantity || 0}))
+    }
 
     
 
@@ -90,17 +107,29 @@ const AllProducts = () => {
                     {errorMessage}
                 </div>
             )}
+
+        <div className="mx-1 mt-2 pb-2" style={{ background: "linear-gradient(to left, rgb(231, 243, 254) 0%, rgb(226, 241, 252) 45%)", borderRadius: "10px" }}>
+            <div className = "pb-2" style={{borderBottom: "1px solid rgb(214, 215, 216)"}}>
             <div className='d-flex justify-content-between align-content-center mt-5 mx-4'>
-              <div className=''>
+              <div className='mt-2'>
                 <h4>Danh sách sản phẩm</h4>
               </div>
-              <Link to = {"/dashboard/product/add/new-product"} className = "btn btn-primary">
+              <Link to = {"/dashboard/product/add/new-product"} className = "btn btn-primary mt-2">
                 Add product
               </Link>
             </div>
-        <p className='mx-3 my-3 fw-bold'>Tổng số sản phẩm: {products.length}</p>
-      <div className = "mx-4 mt-4">
-      <table className='table table-hover' style = {{boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)'}}>
+            </div>
+        
+      <div className = "mx-2 mt-1">
+        <table className='table table-hover mt-2' style={{ marginBottom: "0" }}>
+            <thead>
+                <tr>
+                    <th className = "align-content-center"><p className='fw-bold'>Tổng số sản phẩm: {products.length}</p></th>
+                    <th></th>
+                </tr>
+            </thead>
+        </table>
+      <table className='table table-hover' style = {{boxShadow: '0 0 10px rgba(0, 0, 0, 0.1)', marginTop: "0"}}>
                 <thead>
                     <tr className='text-center'>
                         <th>ID</th>
@@ -108,8 +137,9 @@ const AllProducts = () => {
                         <th>Giá sản phẩm</th>
                         <th>Ảnh sản phẩm</th>
                         <th>Phiếu giảm giá</th>
-                        <th>Tình trạng giảm giá</th>
+                        <th>Tình trạng</th>
                         <th>Size</th>
+                        <th>Màu sắc</th>
                         <th>Số lượng</th>
                         <th>Lượt xem</th>
                         <th>Actions</th>
@@ -121,6 +151,11 @@ const AllProducts = () => {
                 {currentProducts.map((product, index) => {
                             // Default selected size for this product
                             const selectedProductSize = selectedSize[product.productId] || (product.sizeQuantities.length > 0 ? product.sizeQuantities[0].size : "");
+                            const selectedProductColor = selectedColor[product.productId] || (product.sizeQuantities.length > 0 && product.sizeQuantities[0].colorImageProductDtos.length > 0 ? product.sizeQuantities[0].colorImageProductDtos[0].color : "");
+                            const quantityNew = (product.sizeQuantities.find(sizeQuantity => sizeQuantity.size === (selectedSize[product.productId]|| selectedProductSize))?.colorImageProductDtos || []).find(colorProduct => colorProduct.color === (selectedColor[product.productId] || selectedProductColor))?.quantity || 0;
+                            console.log("selectedColor:", selectedColor);
+                            console.log("Product ID:", product.productId);
+                            console.log("selectedColor[product.productId]:", selectedProductColor);
 
                             return (
                                 <tr key={product.productId} className='text-center'>
@@ -130,13 +165,16 @@ const AllProducts = () => {
                                     <td>
                                         {product.imageProduct && (
                                             <img
-                                                src={`data:image/jpeg;base64,${product.imageProduct}`}
+                                                src={product.imageProduct}
                                                 alt={`Photo of ${product.imageProduct}`}
                                                 style={{ width: '40px', height: '35px' }}
                                             />
                                         )}
                                     </td>
-                                    <td className="text-danger">{product.disCount}%</td>
+                                    <td className="text-danger">
+                                        {product.disCount}
+                                        {product.percentage ? '%' : 'VND'}
+                                    </td>
                                     <td>
                                         <span style={{ fontSize: '12px', color: 'white', backgroundColor: product.disCount !== 0 ? 'red' : 'green', padding: '2px 5px', borderRadius: '3px', fontWeight: 'bold' }}>
                                             {product.disCount !== 0 ? 'Đang giảm giá' : 'Không có giảm giá'}
@@ -144,8 +182,8 @@ const AllProducts = () => {
                                     </td>
                                     <td>
                                         <select
-                                            value={selectedProductSize}
-                                            onChange={(e) => handleSizeChange(product.productId, e.target.value)}
+                                            value={selectedSize[product.productId] || selectedProductSize }
+                                            onChange={(e) => handleSizeChange(product, product.productId, e.target.value)}
                                             className="form-select text-center"
                                             style={{ height: '35px',fontSize: '13px'}}
                                         >
@@ -158,7 +196,25 @@ const AllProducts = () => {
                                     </td>
 
                                     <td>
-                                        {product.sizeQuantities.find(sizeQuantity => sizeQuantity.size === selectedProductSize)?.quantity || 0}
+                                        <select
+                                            value={selectedColor[product.productId] || selectedProductColor}
+                                            onChange={(e) => handleColorChange(product, product.productId, e.target.value)}
+                                            className="form-select text-center"
+                                            style={{height: '35px', fontSize: '13px'}}
+                                        >
+                                            {(product.sizeQuantities.find(sq => sq.size === (selectedSize[product.productId] || selectedProductSize))?.colorImageProductDtos || [])
+                                            .map((colorProduct) => (
+                                                <option key={colorProduct.id} value={colorProduct.color} style={{fontSize: '13px'}}>
+                                                    {colorProduct.color}
+                                                </option>
+                                            ))
+                                            }
+
+                                        </select>
+                                    </td>
+
+                                    <td>
+                                        {quantityNew || quantity[product.productId]}
                                     </td>
 
                                     <td>{product.viewCount}</td>
@@ -257,16 +313,24 @@ const AllProducts = () => {
                                                 <thead>
                                                     <tr>
                                                         <th>Size</th>
+                                                        <th>Màu sắc</th>
                                                         <th>Số lượng</th>
                                                     </tr>
                                                 </thead>
                                                 <tbody>
-                                                    {productDetail.sizeQuantities.map((sizeQuantity, index) => (
-                                                        <tr key={index}>
-                                                            <td>{sizeQuantity.size}</td>
-                                                            <td>{sizeQuantity.quantity}</td>
+                                                {productDetail.sizeQuantities.map((sizeQuantity, sizeIndex) =>
+                                                    sizeQuantity.colorImageProductDtos.map((colorProduct, colorIndex) => (
+                                                        <tr key={`${sizeIndex}-${colorIndex}`}>
+                                                            {colorIndex === 0 && (
+                                                                <td rowSpan={sizeQuantity.colorImageProductDtos.length}>
+                                                                    {sizeQuantity.size}
+                                                                </td>
+                                                            )}
+                                                            <td>{colorProduct.color}</td>
+                                                            <td>{colorProduct.quantity}</td>
                                                         </tr>
-                                                    ))}
+                                                    ))
+                                                )}
                                                 </tbody>
                                             </table>
                                         ) : (
@@ -294,7 +358,7 @@ const AllProducts = () => {
                                     />
                                     {productDetail && productDetail.imageProduct && (
                                         <img
-                                            src={`data:image/jpeg;base64,${productDetail.imageProduct}`}
+                                            src={productDetail.imageProduct}
                                             alt={`Preview product Photo`}
                                             style={{ maxWidth: '300px', maxHeight: '300px' }}
                                             className='mb-3'           
@@ -312,6 +376,8 @@ const AllProducts = () => {
             </div>
         </div>
     </div>
+
+       </div>
 
        </div>
     </>

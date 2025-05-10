@@ -22,9 +22,12 @@ public class Brand {
     @Column(nullable = false, unique = true)
     private String name;
 
-    @Lob
+//    @Lob
+//    @Column(nullable = false)
+//    private Blob imageBrand;
+
     @Column(nullable = false)
-    private Blob imageBrand;
+    private String imageBrand;
 
     @OneToMany(mappedBy = "brand")
     private List<Product> products;

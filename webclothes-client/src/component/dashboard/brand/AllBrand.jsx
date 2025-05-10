@@ -18,6 +18,7 @@ const AllBrand = () => {
     const handleViewDetail = async (brandId) => {
         try {
             const brandData = await getBrandById(brandId);
+            console.log('Hiển thị ', brandData)
             setBrandDetail(brandData);
         } catch (error) {
             console.error('Error fetching brand detail:', error);
@@ -94,7 +95,7 @@ const AllBrand = () => {
                         <tr key={brand.id} className='text-center'>
                             <td>{index + 1}</td>
                             <td>{brand.nameBrand}</td>
-                            <td>
+                            {/*<td>
                                 {brand.imageBrand && (
                                     <img
                                         src={`data:image/jpeg;base64,${brand.imageBrand}`}
@@ -102,9 +103,20 @@ const AllBrand = () => {
                                         style={{ width: '40px', height: '35px' }}
                                     />
                                 )}
+                            </td>*/}
+
+                            <td>
+                                {brand.imageBrand && (
+                                    <img
+                                        src={brand.imageBrand}
+                                        alt={`Photo of ${brand.nameBrand}`}
+                                        style={{ width: '40px', height: '35px'}}
+                                    />
+                                )}
                             </td>
+                            
                             <td className='gap-2'>
-                            <button
+                                <button
                                     className='btn btn-primary btn-sm mx-2' data-bs-toggle="modal" data-bs-target="#myModal" onClick={() => handleViewDetail(brand.id)}>
                                     <FaEye />
                                 </button>
@@ -149,7 +161,7 @@ const AllBrand = () => {
                                     />
                                     {brandDetail && brandDetail.imageBrand && (
                                         <img
-                                            src={`data:image/jpeg;base64,${brandDetail.imageBrand}`}
+                                            src={brandDetail.imageBrand}
                                             alt={`Preview Category Photo`}
                                             style={{ maxWidth: '300px', maxHeight: '300px' }}
                                             className='mb-3'           

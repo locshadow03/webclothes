@@ -10,4 +10,5 @@ import java.util.List;
 public class CreateOrderRequest {
     private Customer customer;
     private List<OrderItem> items;
+    private String paymentMethod;
 }

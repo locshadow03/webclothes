@@ -39,8 +39,9 @@ const Login = () => {
             setErrorMessage('Không tồn tại tài khoản!')
           } else if(success.statusCode === 401){
             setErrorMessage('Nhập sai tên tài khoản hoặc password!')
+          } else if(success.statusCode === 407){
+            setErrorMessage('Tài khoản của bạn đã bị khóa!')
           }
-
         } catch (error) {
             console.error('Error registering user:', error);
             setErrorMessage('Đăng nhập thất bại!');

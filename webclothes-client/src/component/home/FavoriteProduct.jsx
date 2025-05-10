@@ -94,7 +94,7 @@ const FavoriteProduct = () => {
                 <Link to={`/home/product-detail/${product.id}`}   className="h-100 w-100">
                   {product.productImage && (
                     <img
-                    src={`data:image/jpeg;base64,${product.productImage}`}
+                    src={product.productImage}
                     alt={`Photo of ${product.productImage}`}
                     style={{ width: '100%', height: '100%',objectFit: "cover"  }}
                     />

@@ -36,9 +36,11 @@ public class Product {
     @Column(nullable = false)
     private double price;
 
-    @Lob
-    @Column(nullable = false)
-    private Blob imageProduct;
+//    @Lob
+//    @Column(nullable = false)
+//    private Blob imageProduct;
+
+    private String imageProduct;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
@@ -56,7 +58,7 @@ public class Product {
     @Column(nullable = false)
     private int viewCount = 0;
 
-    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @OneToMany(mappedBy = "product", fetch = FetchType.EAGER, cascade = CascadeType.ALL, orphanRemoval = true)
     private List<SizeQuantity> sizeQuantities;
 
     @PrePersist

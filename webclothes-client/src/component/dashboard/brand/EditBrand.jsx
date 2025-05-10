@@ -32,7 +32,8 @@ const EditBrand = () => {
           const brandData = await getBrandById(brandId)
           setBrand(brandData)
           
-          setImagePreview(`data:image/jpeg;base64,${brandData.imageBrand}`)
+        //   setImagePreview(`data:image/jpeg;base64,${brandData.imageBrand}`)
+        setImagePreview(brandData.imageBrand)
         } catch (error) {
           console.error(error)
         }
@@ -48,10 +49,11 @@ const EditBrand = () => {
             setSuccessMessage("Brand updated successfully!")
             const updateBrandData = await getBrandById(brandId)
             setBrand(updateBrandData)
-			setImagePreview(`data:image/jpeg;base64,${updateBrandData.imageBrand}`)
+			// setImagePreview(`data:image/jpeg;base64,${updateBrandData.imageBrand}`)
+            setImagePreview(updateBrandData.imageBrand)
               setErrorMessage("")
           } else {
-              setErrorMessage("Error updating brand")
+              setErrorMessage("Cập nhật thương hiệu thất bại")
           }
       } catch (error) {
           setErrorMessage(error.message)

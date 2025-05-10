@@ -12,9 +12,9 @@ public interface ICartService {
 
     Cart getCartByCustomerId(Long customerId);
 
-    Cart addProductToCart(Long cartId, Long productId, int quantity,  String size);
+    Cart addProductToCart(Long cartId, Long productId, int quantity,  String size, String color);
 
     void removeProductFromCart(Long cartId, Long cartItemId);
 
-    void updateProductQuantity(Long cartId, Long cartItemId, int quantity,  String size);
+    void updateProductQuantity(Long cartId, Long cartItemId, int quantity,  String size, String color);
 }

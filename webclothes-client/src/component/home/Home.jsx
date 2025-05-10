@@ -23,9 +23,11 @@ const Home = () => {
   const [favoriteProducts, setFavoriteProducts] = useState([]);
 
   const [newCartItem, setNewCartItem] = useState({
-    quantity: "1",
-    size: "XL"
+    quantity: "",
+    size: "",
+    color: ""
   });
+
 
   const handleBrandClick = (brand) => {
     if(localStorage.getItem('selectBrand') !== localStorage.setItem('selectBrand', brand.nameBrand)){
@@ -39,14 +41,14 @@ const Home = () => {
     
   };
 
-  const handleNewCartItemClick = async (e, productId, quantity, size) =>{
+  const handleNewCartItemClick = async (e, productId, quantity, size, color) =>{
     e.preventDefault()
     const cartId = localStorage.getItem('cartId')
     console.error("Mã giỏ hàng là:",cartId)
 
     try{
       if(cartId !== null){
-        await addCartItem(cartId, productId, quantity, size);
+        await addCartItem(cartId, productId, quantity, size, color);
         toast.success("Thêm vào giỏ hàng thành công!");
       }
     } catch(error){
@@ -184,7 +186,7 @@ const formatCurrency = (value) => {
 
       <div className="mx-4 mt-3 bg-white py-3">
         <div className="mt-3 mx-3">
-          <h4 style={{ color: 'rgb(255, 174, 0)' }}>Danh sách nhãn hàng</h4>
+          <h4 style={{ color: 'rgb(255, 174, 0)' }}>Danh sách thương hiệu</h4>
           <div className="my-3 d-flex" style = {{overflowX: 'scroll', msOverflowStyle: 'none', scrollbarWidth: 'none'}}>
           {brands.map((brand) => (
             <Link to = "/home/product-filter" className="col-2 mt-1 h-100" key={brand.id} style = {{textDecoration :'none'}}  onClick={() => handleBrandClick(brand)}>
@@ -192,7 +194,7 @@ const formatCurrency = (value) => {
                 <div style = {{height:'90px'}}>
                   {brand.imageBrand && (
                       <img
-                        src={`data:image/jpeg;base64,${brand.imageBrand}`}
+                        src={brand.imageBrand}
                         alt={`Photo of ${brand.imageBrand}`}
                         style={{ width: '100%', height: '90px' }}
                       />
@@ -227,13 +229,18 @@ const formatCurrency = (value) => {
                 <Link to={`/home/product-detail/${product.productId}`}   className="h-100 w-100">
                   {product.imageProduct && (
                     <img
-                    src={`data:image/jpeg;base64,${product.imageProduct}`}
+                    src={product.imageProduct}
                     alt={`Photo of ${product.imageProduct}`}
                     style={{ width: '100%', height: '100%',objectFit: "cover"  }}
                     />
                   )}
                 </Link>
-                {product.disCount !== 0 ? <span className="position-absolute bg-danger text-white" style={{ right: '0px', top: '0px' }}>Giảm {product.disCount} %</span> : ''}
+                {product.disCount !== 0 ? 
+                <span className="position-absolute bg-danger text-white" style={{ right: '0px', top: '0px' }}>{product.percentage 
+                  ? `Giảm ${product.disCount}%` 
+                  : `Giảm ${formatCurrency(product.disCount)}`
+                }
+                </span> : ''}
                 <button className={`favorite-button ${favoriteProducts.includes(product.productId) ? 'favorited' : ''}`}
                     onClick={(e) => handleFavoriteClick(e, product.productId)}
                  style={{position: 'absolute', left: '20px', top: '10px', fontSize:'25px', backgroundColor: 'transparent', border: 'none' }}><i class="bi bi-heart-fill" style={{ color: favoriteProducts.includes(product.productId) ? 'red' : 'white' }}></i></button>
@@ -256,11 +263,11 @@ const formatCurrency = (value) => {
                     </div>
                     <div className="mx-1">
                       <div className="bg-warning">
-                        <p className="text-white">{formatCurrency((product.price - (product.price * (product.disCount/100))))}</p>
+                        <p className="text-white">{formatCurrency(product.percentage ? (product.price - (product.price * (product.disCount/100))) : (product.price - product.disCount))}</p>
                       </div>
                     </div>
                   </div>
-                  <div className="col pb-3" onClick={(e) => handleNewCartItemClick(e, product.productId, newCartItem.quantity, newCartItem.size)}>
+                  <div className="col pb-3" onClick={(e) => handleNewCartItemClick(e, product.productId, 1, product.sizeQuantities[0].size, product.sizeQuantities[0].colorImageProductDtos[0].color)}>
                     <button className="btn btn-primary"><i className="bi bi-cart3"></i> Thêm vào giỏ hàng</button>
                   </div>
                 </div>

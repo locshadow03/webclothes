@@ -4,6 +4,7 @@ import com.shopclothes.extension.InternalServerException;
 import com.shopclothes.extension.ResourceNotFoundException;
 import com.shopclothes.model.Brand;
 import com.shopclothes.repository.BrandRepository;
+import com.shopclothes.service.upload.IImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -19,15 +20,32 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class BrandImpl implements IBrandService{
     private final BrandRepository brandRepository;
+
+    private final IImageService imageService;
+//    @Override
+//    public Brand addNewBrand(String nameBrand, MultipartFile file) throws SQLException, IOException {
+//        Brand newBrand = new Brand();
+//        newBrand.setName(nameBrand);
+//        if(!file.isEmpty()){
+//            byte[] photoBytes = file.getBytes();
+//            Blob photoBlob = new SerialBlob(photoBytes);
+//            newBrand.setImageBrand(photoBlob);
+//        }
+//        return brandRepository.save(newBrand);
+//    }
+
     @Override
-    public Brand addNewBrand(String nameBrand, MultipartFile file) throws SQLException, IOException {
+    public Brand addNewBrand(String nameBrand, MultipartFile imageBrand) throws SQLException, IOException {
         Brand newBrand = new Brand();
         newBrand.setName(nameBrand);
-        if(!file.isEmpty()){
-            byte[] photoBytes = file.getBytes();
-            Blob photoBlob = new SerialBlob(photoBytes);
-            newBrand.setImageBrand(photoBlob);
+
+        if(imageBrand != null){
+            String img = imageService.saveImage(imageBrand);
+            newBrand.setImageBrand(img);
+        } else{
+            newBrand.setImageBrand("hihi");
         }
+
         return brandRepository.save(newBrand);
     }
 
@@ -42,38 +60,51 @@ public class BrandImpl implements IBrandService{
     }
 
     @Override
-    public void deleteBrand(Long brandId) {
+    public void deleteBrand(Long brandId) throws IOException {
         Optional<Brand> theBrand = brandRepository.findById(brandId);
         if(theBrand.isPresent()){
+            imageService.deleteImage(theBrand.get().getImageBrand());
             brandRepository.deleteById(brandId);
         }
 
     }
 
-    @Override
-    public byte[] getBrandPhotoById(Long brandId) throws SQLException {
-        Optional<Brand> theBrand = brandRepository.findById(brandId);
-        if(theBrand.isEmpty()){
-            throw new ResourceNotFoundException("Sorry, Brand not found!");
-        }
-        Blob photoBrand = theBrand.get().getImageBrand();
-        if(photoBrand != null) {
-            return photoBrand.getBytes(1,(int)photoBrand.length());
-        }
-        return null;
-    }
+//    @Override
+//    public byte[] getBrandPhotoById(Long brandId) throws SQLException {
+//        Optional<Brand> theBrand = brandRepository.findById(brandId);
+//        if(theBrand.isEmpty()){
+//            throw new ResourceNotFoundException("Sorry, Brand not found!");
+//        }
+//        Blob photoBrand = theBrand.get().getImageBrand();
+//        if(photoBrand != null) {
+//            return photoBrand.getBytes(1,(int)photoBrand.length());
+//        }
+//        return null;
+//    }
+
+//    @Override
+//    public Brand updateBrand(Long brandId, String nameBrand, byte[] photoBytes) {
+//        Brand theBrand = brandRepository.findById(brandId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Sorry, Brand not found!"));
+//        if(nameBrand != null) theBrand.setName(nameBrand);
+//        if(photoBytes != null && photoBytes.length > 0){
+//            try{
+//                theBrand.setImageBrand(new SerialBlob(photoBytes));
+//            } catch (SQLException ex){
+//                new InternalServerException("Error updating brand");
+//            }
+//        }
+//        return brandRepository.save(theBrand);
+//    }
 
     @Override
-    public Brand updateBrand(Long brandId, String nameBrand, byte[] photoBytes) {
+    public Brand updateBrand(Long brandId, String nameBrand, MultipartFile file) throws IOException {
         Brand theBrand = brandRepository.findById(brandId)
                 .orElseThrow(() -> new ResourceNotFoundException("Sorry, Brand not found!"));
         if(nameBrand != null) theBrand.setName(nameBrand);
-        if(photoBytes != null && photoBytes.length > 0){
-            try{
-                theBrand.setImageBrand(new SerialBlob(photoBytes));
-            } catch (SQLException ex){
-                new InternalServerException("Error updating brand");
-            }
+        if(file != null){
+            imageService.deleteImage(theBrand.getImageBrand());
+            theBrand.setImageBrand(imageService.saveImage(file));
         }
         return brandRepository.save(theBrand);
     }

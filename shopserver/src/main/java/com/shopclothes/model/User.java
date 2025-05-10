@@ -32,6 +32,8 @@ public class User implements UserDetails {
     @Column(nullable = false)
     private String password;
 
+    private boolean action;
+
     @CreationTimestamp
     @Column(updatable = false, name = "created_at")
     private Date createdAt;

@@ -16,11 +16,11 @@ public interface ICategoryService {
 
     List<String> getAllCategoryTypes();
 
-    void deleteCategory(Long categoryId);
+    void deleteCategory(Long categoryId) throws IOException;
 
-    byte[] getCategoryPhotoByCategoryId(Long categoryId) throws SQLException;
+//    byte[] getCategoryPhotoByCategoryId(Long categoryId) throws SQLException;
 
-    Category updateCategory(Long categoryId,  String nameCategory, byte[] photoBytes);
+    Category updateCategory(Long categoryId,  String nameCategory, MultipartFile file) throws IOException;
 
     Optional<Category> getCategoryById(Long categoryId);
     long getTotalCategories();

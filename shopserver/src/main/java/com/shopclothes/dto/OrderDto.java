@@ -31,5 +31,8 @@ public class OrderDto {
 
     private String lastName;
 
+    private String paymentMethod;
+
+    private String paymentStatus;
 
 }

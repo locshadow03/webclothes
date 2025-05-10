@@ -131,13 +131,19 @@ const MyOrder = () => {
                                             <h6>Số điện thoại:</h6>
                                             <p>{selectedOrder.phoneNumber}</p>
                                         </div>
-                                        <div className="col-md-6">
+                                        <div className="col-md-4">
+                                            <h6>Phương thức thanh toán:</h6>
+                                            <p>{selectedOrder.paymentMethod}</p>
+                                            <h6>Trạng thái thanh toán:</h6>
+                                            <p>{selectedOrder.paymentStatus}</p>
+                                            <h6>Tổng tiền:</h6>
+                                            <p className='text-danger'>{formatCurrency(selectedOrder.totalAmount)}</p>
+                                        </div>
+                                        <div className="col-md-4">
                                             <h6>Địa chỉ:</h6>
                                             <p>{selectedOrder.address}</p>
                                             <h6>Trạng thái:</h6>
                                             <p>{selectedOrder.statusOrder}</p>
-                                            <h6>Tổng tiền:</h6>
-                                            <p className='text-danger'>{formatCurrency(selectedOrder.totalAmount)}</p>
                                         </div>
                                     </div>
 
@@ -148,6 +154,7 @@ const MyOrder = () => {
                                                 <th>Hình ảnh</th>
                                                 <th>Tên sản phẩm</th>
                                                 <th>Size</th>
+                                                <th>Màu sắc</th>
                                                 <th>Số lượng</th>
                                                 <th>Giá</th>
                                             </tr>
@@ -158,7 +165,7 @@ const MyOrder = () => {
                                                     <td>
                                                     {item.imageProduct && (
                                                         <img
-                                                        src={`data:image/jpeg;base64,${item.imageProduct}`}
+                                                        src={item.imageProduct}
                                                         alt={`Photo of ${item.imageProduct}`}
                                                         style={{ width: '40px', height: '35px' }}
                                                     />
@@ -166,12 +173,11 @@ const MyOrder = () => {
                                                     </td>
                                                     <td>{item.productName}</td>
                                                     <td>{item.size}</td>
+                                                    <td>{item.color}</td>
                                                     <td>{item.quantity}</td>
                                                     <td className="text-danger">
                                                         {formatCurrency(
-                                                            item.disCount
-                                                                ? (item.price - item.price * (item.disCount / 100)) * item.quantity
-                                                                : item.price * item.quantity
+                                                            item.price
                                                         )}
                                                     </td>
                                                 </tr>

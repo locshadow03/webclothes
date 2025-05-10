@@ -30,6 +30,12 @@ public class BrandController {
 
     @PostMapping("/add/new-brand")
     @PreAuthorize("hasRole('ADMIN')")
+//    public ResponseEntity<BrandDto> addNewBrand(@RequestParam("nameBrand") String nameBrand,
+//                                                @RequestParam("photoBrand") MultipartFile photoBrand) throws SQLException, IOException{
+//        Brand savedBrand = brandService.addNewBrand(nameBrand, photoBrand);
+//        BrandDto brandDto = new BrandDto(savedBrand.getId(), savedBrand.getName());
+//        return ResponseEntity.ok(brandDto);
+//    }
     public ResponseEntity<BrandDto> addNewBrand(@RequestParam("nameBrand") String nameBrand,
                                                 @RequestParam("photoBrand") MultipartFile photoBrand) throws SQLException, IOException{
         Brand savedBrand = brandService.addNewBrand(nameBrand, photoBrand);
@@ -37,39 +43,61 @@ public class BrandController {
         return ResponseEntity.ok(brandDto);
     }
 
+//    @GetMapping("/all-brands")
+//    public ResponseEntity<List<BrandDto>> allBrands() throws SQLException{
+//        List<Brand> brands = brandService.getAllBrands();
+//        List<BrandDto> brandDtos = new ArrayList<>();
+//        for(Brand brand : brands){
+//            byte[] photoBytes = brandService.getBrandPhotoById(brand.getId());
+//            if(photoBytes != null && photoBytes.length > 0){
+//                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
+//                BrandDto brandDto = getBrandDto(brand);
+//                brandDto.setImageBrand(base64Photo);
+//                brandDtos.add(brandDto);
+//            }
+//        }
+//        return ResponseEntity.ok(brandDtos);
+//    }
+
     @GetMapping("/all-brands")
     public ResponseEntity<List<BrandDto>> allBrands() throws SQLException{
         List<Brand> brands = brandService.getAllBrands();
         List<BrandDto> brandDtos = new ArrayList<>();
         for(Brand brand : brands){
-            byte[] photoBytes = brandService.getBrandPhotoById(brand.getId());
-            if(photoBytes != null && photoBytes.length > 0){
-                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-                BrandDto brandDto = getBrandDto(brand);
-                brandDto.setImageBrand(base64Photo);
-                brandDtos.add(brandDto);
-            }
+            BrandDto brandDto = new BrandDto();
+            brandDto.setId(brand.getId());
+            brandDto.setImageBrand(brand.getImageBrand());
+            brandDto.setNameBrand(brand.getName());
+            brandDtos.add(brandDto);
+
         }
         return ResponseEntity.ok(brandDtos);
     }
 
     @DeleteMapping("/delete/brand/{brandId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<Void> deleteBrand(@PathVariable Long brandId){
+    public ResponseEntity<Void> deleteBrand(@PathVariable Long brandId) throws IOException {
         brandService.deleteBrand(brandId);
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @PutMapping("/update/{brandId}")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<BrandDto> updateRoom(@PathVariable Long brandId,
+//    public ResponseEntity<BrandDto> updateRoom(@PathVariable Long brandId,
+//                                                  @RequestParam("nameBrand") String nameBrand,
+//                                                  @RequestParam("imageBrand") MultipartFile photo) throws SQLException, IOException {
+//        byte[] photoBytes = photo != null && !photo.isEmpty() ? photo.getBytes() : brandService.getBrandPhotoById(brandId);
+//
+//        Blob photoBlob = photoBytes != null && photoBytes.length > 0 ? new SerialBlob(photoBytes) : null;
+//        Brand brand = brandService.updateBrand(brandId, nameBrand, photoBytes);
+//        brand.setImageBrand(photoBlob);
+//        BrandDto brandDto = getBrandDto(brand);
+//        return ResponseEntity.ok(brandDto);
+//    }
+        public ResponseEntity<BrandDto> updateRoom(@PathVariable Long brandId,
                                                   @RequestParam("nameBrand") String nameBrand,
-                                                  @RequestParam("imageBrand") MultipartFile photo) throws SQLException, IOException {
-        byte[] photoBytes = photo != null && !photo.isEmpty() ? photo.getBytes() : brandService.getBrandPhotoById(brandId);
-
-        Blob photoBlob = photoBytes != null && photoBytes.length > 0 ? new SerialBlob(photoBytes) : null;
-        Brand brand = brandService.updateBrand(brandId, nameBrand, photoBytes);
-        brand.setImageBrand(photoBlob);
+                                                  @RequestParam("imageBrand") MultipartFile photo) throws IOException {
+        Brand brand = brandService.updateBrand(brandId, nameBrand, photo);
         BrandDto brandDto = getBrandDto(brand);
         return ResponseEntity.ok(brandDto);
     }
@@ -88,18 +116,29 @@ public class BrandController {
         return brandService.getAllBrandTypes();
     }
 
+//    private BrandDto getBrandDto(Brand brand) {
+//        byte[] photoBytes = null;
+//        Blob photoBlob = brand.getImageBrand();
+//        if(photoBlob != null){
+//            try{
+//                photoBytes = photoBlob.getBytes(1, (int) photoBlob.length());
+//            } catch (SQLException e){
+//                throw  new PhotoRetrievalExcetion("Error retrieving photo");
+//            }
+//        }
+//        return new BrandDto(brand.getId(), brand.getName(),photoBytes);
+//    }
+
     private BrandDto getBrandDto(Brand brand) {
-        byte[] photoBytes = null;
-        Blob photoBlob = brand.getImageBrand();
-        if(photoBlob != null){
-            try{
-                photoBytes = photoBlob.getBytes(1, (int) photoBlob.length());
-            } catch (SQLException e){
-                throw  new PhotoRetrievalExcetion("Error retrieving photo");
-            }
-        }
-        return new BrandDto(brand.getId(), brand.getName(),photoBytes);
+        BrandDto brandDto = new BrandDto();
+
+        brandDto.setNameBrand(brand.getName());
+        brandDto.setImageBrand(brand.getImageBrand());
+        brandDto.setId(brand.getId());
+
+        return brandDto;
     }
+
 
     @GetMapping("/brand/count")
     public long getTotalBrand() {

@@ -32,40 +32,42 @@ public class FavoriteProductController {
         List<FavoriteProduct> favoriteProducts = favoriteProductService.getAllFavoriteProductsByUser(userId);
         List<FavoriteProductDto> favoriteProductDtos = new ArrayList<>();
         for (FavoriteProduct favoriteProduct : favoriteProducts) {
-            byte[] photoBytes = productService.getProductPhotoById(favoriteProduct.getProduct().getId());
-            if (photoBytes != null && photoBytes.length > 0) {
-                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-                FavoriteProductDto favoriteProductDto = getfavoriteDto(favoriteProduct);
-                favoriteProductDto.setProductImage(base64Photo);
-                favoriteProductDtos.add(favoriteProductDto);
-            }
+//            byte[] photoBytes = productService.getProductPhotoById(favoriteProduct.getProduct().getId());
+//            if (photoBytes != null && photoBytes.length > 0) {
+//                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
+//                FavoriteProductDto favoriteProductDto = getfavoriteDto(favoriteProduct);
+//                favoriteProductDto.setProductImage(base64Photo);
+//                favoriteProductDtos.add(favoriteProductDto);
+//            }
+            FavoriteProductDto favoriteProductDto = getfavoriteDto(favoriteProduct);
+            favoriteProductDtos.add(favoriteProductDto);
         }
         return ResponseEntity.ok(favoriteProductDtos);
     }
 
     private FavoriteProductDto getfavoriteDto(FavoriteProduct favoriteProduct) {
-        byte[] photoBytes = null;
-        Blob photoBlob = favoriteProduct.getProduct().getImageProduct();
-        if (photoBlob != null) {
-            try {
-                photoBytes = photoBlob.getBytes(1, (int) photoBlob.length());
-            } catch (SQLException e) {
-                throw new PhotoRetrievalExcetion("Error retrieving photo");
-            }
-        }
-        FavoriteProductDto favoriteProductDto = new FavoriteProductDto(favoriteProduct.getProduct().getId(), favoriteProduct.getProduct().getName(), favoriteProduct.getProduct().getDisCount(),favoriteProduct.getProduct().getPrice(), photoBytes);
+//        byte[] photoBytes = null;
+//        Blob photoBlob = favoriteProduct.getProduct().getImageProduct();
+//        if (photoBlob != null) {
+//            try {
+//                photoBytes = photoBlob.getBytes(1, (int) photoBlob.length());
+//            } catch (SQLException e) {
+//                throw new PhotoRetrievalExcetion("Error retrieving photo");
+//            }
+//        }
+        FavoriteProductDto favoriteProductDto = new FavoriteProductDto(favoriteProduct.getProduct().getId(), favoriteProduct.getProduct().getName(), favoriteProduct.getProduct().getDisCount(),favoriteProduct.getProduct().getPrice(), favoriteProduct.getProduct().getImageProduct());
         return favoriteProductDto;
     }
 
     @PostMapping("/{userId}/{productId}")
     public ResponseEntity<FavoriteProductDto> addProductToFavorites(@PathVariable Long userId, @PathVariable Long productId) throws SQLException {
         FavoriteProduct favoriteProduct = favoriteProductService.addProductToFavorites(userId, productId);
-        byte[] photoBytes = productService.getProductPhotoById(productId);
-        String base64Photo = null;
-        if (photoBytes != null && photoBytes.length > 0) {
-            base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-        }
-        FavoriteProductDto favoriteProductDto = new FavoriteProductDto(favoriteProduct.getProduct().getName(), favoriteProduct.getProduct().getDisCount(), favoriteProduct.getProduct().getPrice(), base64Photo);
+//        byte[] photoBytes = productService.getProductPhotoById(productId);
+//        String base64Photo = null;
+//        if (photoBytes != null && photoBytes.length > 0) {
+//            base64Photo = Base64.getEncoder().encodeToString(photoBytes);
+//        }
+        FavoriteProductDto favoriteProductDto = new FavoriteProductDto(favoriteProduct.getProduct().getName(), favoriteProduct.getProduct().getDisCount(), favoriteProduct.getProduct().getPrice(), favoriteProduct.getProduct().getImageProduct());
         return ResponseEntity.ok(favoriteProductDto);
     }
 
@@ -88,11 +90,12 @@ public class FavoriteProductController {
             topFavoriteProductDto.setDiscount(favoriteProductResponse.getProduct().getDisCount());
             topFavoriteProductDto.setId(favoriteProductResponse.getProduct().getId());
             topFavoriteProductDto.setTotalFavoriteProduct(favoriteProductResponse.getTotalFavoriteProduct());
-            byte[] photoBytes = productService.getProductPhotoById(favoriteProductResponse.getProduct().getId());
-            if (photoBytes != null && photoBytes.length > 0) {
-                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-                topFavoriteProductDto.setAvatar(base64Photo);
-            }
+//            byte[] photoBytes = productService.getProductPhotoById(favoriteProductResponse.getProduct().getId());
+//            if (photoBytes != null && photoBytes.length > 0) {
+//                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
+//                topFavoriteProductDto.setAvatar(base64Photo);
+//            }
+            topFavoriteProductDto.setAvatar(favoriteProductResponse.getProduct().getImageProduct());
             topFavoriteProductDtos.add(topFavoriteProductDto);
         }
         return ResponseEntity.ok(topFavoriteProductDtos);
@@ -111,11 +114,12 @@ public class FavoriteProductController {
             topFavoriteProductDto.setDiscount(favoriteProductResponse.getProduct().getDisCount());
             topFavoriteProductDto.setId(favoriteProductResponse.getProduct().getId());
             topFavoriteProductDto.setTotalFavoriteProduct(favoriteProductResponse.getTotalFavoriteProduct());
-            byte[] photoBytes = productService.getProductPhotoById(favoriteProductResponse.getProduct().getId());
-            if (photoBytes != null && photoBytes.length > 0) {
-                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-                topFavoriteProductDto.setAvatar(base64Photo);
-            }
+//            byte[] photoBytes = productService.getProductPhotoById(favoriteProductResponse.getProduct().getId());
+//            if (photoBytes != null && photoBytes.length > 0) {
+//                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
+//                topFavoriteProductDto.setAvatar(base64Photo);
+//            }
+            topFavoriteProductDto.setAvatar(favoriteProductResponse.getProduct().getImageProduct());
             topFavoriteProductDtos.add(topFavoriteProductDto);
         }
         return ResponseEntity.ok(topFavoriteProductDtos);
@@ -134,11 +138,12 @@ public class FavoriteProductController {
             topFavoriteProductDto.setDiscount(favoriteProductResponse.getProduct().getDisCount());
             topFavoriteProductDto.setId(favoriteProductResponse.getProduct().getId());
             topFavoriteProductDto.setTotalFavoriteProduct(favoriteProductResponse.getTotalFavoriteProduct());
-            byte[] photoBytes = productService.getProductPhotoById(favoriteProductResponse.getProduct().getId());
-            if (photoBytes != null && photoBytes.length > 0) {
-                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-                topFavoriteProductDto.setAvatar(base64Photo);
-            }
+//            byte[] photoBytes = productService.getProductPhotoById(favoriteProductResponse.getProduct().getId());
+//            if (photoBytes != null && photoBytes.length > 0) {
+//                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
+//                topFavoriteProductDto.setAvatar(base64Photo);
+//            }
+            topFavoriteProductDto.setAvatar(favoriteProductResponse.getProduct().getImageProduct());
             topFavoriteProductDtos.add(topFavoriteProductDto);
         }
         return ResponseEntity.ok(topFavoriteProductDtos);
@@ -157,11 +162,12 @@ public class FavoriteProductController {
             topFavoriteProductDto.setDiscount(favoriteProductResponse.getProduct().getDisCount());
             topFavoriteProductDto.setId(favoriteProductResponse.getProduct().getId());
             topFavoriteProductDto.setTotalFavoriteProduct(favoriteProductResponse.getTotalFavoriteProduct());
-            byte[] photoBytes = productService.getProductPhotoById(favoriteProductResponse.getProduct().getId());
-            if (photoBytes != null && photoBytes.length > 0) {
-                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-                topFavoriteProductDto.setAvatar(base64Photo);
-            }
+//            byte[] photoBytes = productService.getProductPhotoById(favoriteProductResponse.getProduct().getId());
+//            if (photoBytes != null && photoBytes.length > 0) {
+//                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
+//                topFavoriteProductDto.setAvatar(base64Photo);
+//            }
+            topFavoriteProductDto.setAvatar(favoriteProductResponse.getProduct().getImageProduct());
             topFavoriteProductDtos.add(topFavoriteProductDto);
         }
         return ResponseEntity.ok(topFavoriteProductDtos);

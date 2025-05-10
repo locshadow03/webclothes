@@ -10,18 +10,20 @@ import java.util.List;
 import java.util.Optional;
 
 public interface IBrandService {
+//    Brand addNewBrand(String nameBrand, MultipartFile imageBrand) throws SQLException, IOException;
+
     Brand addNewBrand(String nameBrand, MultipartFile imageBrand) throws SQLException, IOException;
 
     List<Brand> getAllBrands();
 
     List<String> getAllBrandTypes();
 
-    void deleteBrand(Long brandId);
+    void deleteBrand(Long brandId) throws IOException;
 
-    byte[] getBrandPhotoById(Long brandId) throws SQLException;
-
-    Brand updateBrand(Long brandId,  String nameBrand, byte[] photoBytes);
-
+//    byte[] getBrandPhotoById(Long brandId) throws SQLException;
+//
+//    Brand updateBrand(Long brandId,  String nameBrand, byte[] photoBytes);
+    Brand updateBrand(Long brandId,  String nameBrand, MultipartFile file) throws IOException;
     Optional<Brand> getBrandById(Long brandId);
     long getTotalBrands();
 }

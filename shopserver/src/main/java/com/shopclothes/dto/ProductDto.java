@@ -21,6 +21,7 @@ public class ProductDto {
     private String nameBrand;
     private double disCount;
     private int viewCount;
+    private boolean isPercentage;
     private List<SizeQuantityDto> sizeQuantities;
 
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
@@ -39,16 +40,16 @@ public class ProductDto {
         this.disCount = disCount;
     }
 
-    public ProductDto(Long productId, String name, double price, byte[] photoBytes, double disCount, int viewCount) {
+    public ProductDto(Long productId, String name, double price, String imagePorduct, double disCount, int viewCount) {
         this.productId = productId;
         this.name = name;
         this.price = price;
-        this.imageProduct = photoBytes != null ? Base64.getEncoder().encodeToString(photoBytes) : null;
+        this.imageProduct = imagePorduct;
         this.disCount = disCount;
         this.viewCount = viewCount;
     }
 
-    public ProductDto(Long productId, String name, String code, String nameCategory, String description, double price, byte[] photoBytes, String nameBrand, List<SizeQuantityDto> sizeQuantities, LocalDateTime createdAt, LocalDateTime updatedAt, double disCount, int viewCount) {
+    public ProductDto(Long productId, String name, String code, String nameCategory, String description, double price, String imageProduct, String nameBrand, List<SizeQuantityDto> sizeQuantities, LocalDateTime createdAt, LocalDateTime updatedAt, double disCount, int viewCount) {
         this.productId = productId;
         this.name = name;
         this.code = code;
@@ -56,7 +57,7 @@ public class ProductDto {
         this.description = description;
         this.price = price;
         this.sizeQuantities = sizeQuantities;
-        this.imageProduct = photoBytes != null ? Base64.getEncoder().encodeToString(photoBytes) : null;
+        this.imageProduct = imageProduct;
         this.nameBrand = nameBrand;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;

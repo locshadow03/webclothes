@@ -24,10 +24,29 @@ export async function addProduct(nameProduct,codeProduct,nameCategory, descripti
     formData.append("nameCategory", nameCategory)
     formData.append("description", description)
     formData.append("price", price)
-    formData.append("sizeQuantities", JSON.stringify(sizeQuantities))
     formData.append("nameBrand", nameBrand)
     formData.append("disCount", disCount)
     formData.append("photo", photo)
+    let colorIndices = [];
+    let sizeIndices = [];
+    sizeQuantities.forEach((size, sizeIndex) => {
+        size.colorImageProductDtos.forEach((color, colorIndex) => {
+            if (color.previewUrl != null) {
+                formData.append("colorImageProducts", color.imageProduct);
+                colorIndices.push(colorIndex); 
+                sizeIndices.push(sizeIndex); 
+                console.log("color.imageProduct:", "hihih");
+            } else {
+                formData.append("colorImageProducts", null);
+                console.log("color.imageProduct:", "hêllllo");
+            }
+            color.imageProduct = null;
+        });
+    });
+
+    formData.append("colorIndices", JSON.stringify(colorIndices));
+    formData.append("sizeIndices", JSON.stringify(sizeIndices));
+    formData.append("sizeQuantities", JSON.stringify(sizeQuantities))
 
     const response = await api.post("/add/new-product", formData)
     if(response.status === 201){
@@ -53,10 +72,34 @@ export async function updateProduct(productId,productData){
     formData.append("nameCategory", productData.nameCategory)
     formData.append("description", productData.description)
     formData.append("price", productData.price)
-    formData.append("sizeQuantities", JSON.stringify(productData.sizeQuantities))
     formData.append("nameBrand", productData.nameBrand)
     formData.append("disCount", productData.disCount)
-    formData.append("imageProduct", productData.imageProduct)
+    formData.append("imageProductMain", productData.imageProduct)
+    
+    console.log("hien thi het: ", productData.sizeQuantities)
+    let colorIndices = [];
+    let sizeIndices = [];
+
+    productData.sizeQuantities.forEach((size, sizeIndex) => {
+        size.colorImageProductDtos.forEach((color, colorIndex) => {
+            if (color.previewUrl != null) {
+                formData.append("colorImageProducts", color.imageProduct);
+                colorIndices.push(colorIndex); 
+                sizeIndices.push(sizeIndex); 
+                console.log("color.imageProduct:", "hihih");
+            } else {
+                formData.append("colorImageProducts", null);
+                console.log("color.imageProduct:", "hêllllo");
+            }
+            color.imageProduct = null;
+        });
+    });
+    formData.append("colorIndices", JSON.stringify(colorIndices));
+    formData.append("sizeIndices", JSON.stringify(sizeIndices));   
+    console.log("Select size product now!" , sizeIndices)
+    console.log("Select color product now!" , colorIndices)
+    formData.append("sizeQuantities", JSON.stringify(productData.sizeQuantities))
+      
     const response = await api.put(`/update/${productId}`, formData)
     return response
 }

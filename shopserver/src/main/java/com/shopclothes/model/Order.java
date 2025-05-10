@@ -31,6 +31,10 @@ public class Order {
     private Double totalAmount;
     private String status;
 
+    @Enumerated(EnumType.STRING)
+    private PaymentMethod paymentMethod;
+
+    private String paymentStatus;
 
     @PrePersist
     protected void onCreate() {

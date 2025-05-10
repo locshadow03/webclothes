@@ -476,7 +476,7 @@ const fetchTopProduct = async () =>{
                           <td>
                             {favoriteProduct.avatar && (
                               <img
-                              src={`data:image/jpeg;base64,${favoriteProduct.avatar}`}
+                              src={favoriteProduct.avatar}
                               alt={`Photo of ${favoriteProduct.avatar}`}
                               style={{ width: '150px', height: '100px',objectFit: "cover"}}
                               />

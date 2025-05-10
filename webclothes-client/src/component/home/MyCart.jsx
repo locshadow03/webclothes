@@ -1,9 +1,11 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { deleteCartItem, getAllCartItems, updateCartItem } from '../../api/Cart'
 import { getCustomerById } from '../../api/Customer'
 import { addOrder } from '../../api/Order'
 import { toast } from 'react-toastify'
+import { createPayment } from '../../api/PayMent'
+import { useLocation } from 'react-router-dom';
 
 const MyCart = () => {
     const[cartItems, setCartItems] = useState([])
@@ -12,6 +14,9 @@ const MyCart = () => {
     const[quantities, setQuantities] = useState({})
     
     const[totalMoney, setTotalMoney] = useState(0)
+    const location = useLocation();
+
+    const [paymentMethod, setPaymentMethod] = useState("COD");
 
     const [customer, setCustomer] = useState({
         customerId : "",
@@ -23,6 +28,53 @@ const MyCart = () => {
     })
 
     const userId = localStorage.getItem('id')
+    const hasRun = useRef(false);
+    const [isLoading, setIsLoading] = useState(false);
+
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const responseCode = params.get("vnp_ResponseCode");
+        console.log("Hien thi ra nay: ", JSON.parse(localStorage.getItem("pendingOrderData")))
+        const orderData = JSON.parse(localStorage.getItem("pendingOrderData"));
+        const cartData = JSON.parse(localStorage.getItem("cartData"));
+        console.log("Order Data: ", cartData);
+        if (hasRun.current) return;
+        hasRun.current = true;
+        if (responseCode === "00") {
+            if (orderData && cartData) {
+                const handlePaymentSuccess = async () => {
+                    try {
+                        setIsLoading(true);
+                        const result = await addOrder(orderData);
+                        if (result) {
+                            
+    
+                            for (const item of cartData) {
+                                await handleDelete(localStorage.getItem('cartId'), item.cartId);
+                            }
+    
+                            localStorage.removeItem("pendingOrderData");
+                        
+                        }
+
+                        setTimeout(() => {
+                            setIsLoading(false);
+                          }, 5000);
+                          
+                          toast.success("Thanh toán thành công và đơn hàng đã được tạo!");
+                    } catch (error) {
+                        console.error("Lỗi khi tạo đơn hàng sau thanh toán:", error);
+                        toast.error("Đã có lỗi xảy ra khi xử lý đơn hàng.");
+                    }
+                };
+    
+                handlePaymentSuccess();
+
+            }
+        } else {
+            fetchCartItems(); // Nếu không có thanh toán hoặc thanh toán thất bại
+        }
+    }, []);
 
     useEffect(() => {
 
@@ -65,11 +117,53 @@ const MyCart = () => {
             setQuantities(initialQuantities);
 
             const total = result.reduce((sum, item) => {
-                return sum + (item.price - item.price * (item.disCount / 100)) * item.quantity;
-            }, 0);
-            setTotalMoney(total);
+                const discountedPrice = item.disCount ? (item.percentage
+                ? item.price - (item.price * (item.disCount / 100))
+                : item.price - item.disCount) : item.price
+              
+                return sum + (discountedPrice * item.quantity);
+              }, 0);
+              
+              setTotalMoney(total);
         } catch (error) {
             setErrorMessage(error.message);
+        }
+    };
+
+    const handlePayment = async (orderCode, amount) => {
+        const orderData = {
+            customer: {
+                id: customer.customerId,
+                lastName: customer.lastName,
+                firstName: customer.firstName,
+                phoneNumber: customer.phoneNumber,
+                address: customer.address
+            },
+            items: cartItems.map(item => ({
+                product: { id: item.productId },
+                quantity: item.quantity,
+                size: item.size,
+                price: item.price,
+                color: item.color
+            })),
+            paymentMethod
+        };
+
+        localStorage.setItem("pendingOrderData", JSON.stringify(orderData))
+
+        localStorage.setItem("cartData", JSON.stringify(cartItems))
+
+        console.log("Order Data: ", orderData);
+        try {
+            // Gửi yêu cầu để lấy URL thanh toán từ backend
+            const response = await createPayment(orderCode, amount)
+
+            console.log("URL: ", response);
+
+            window.location.href = response;
+            
+        } catch (error) {
+            console.error('Có lỗi xảy ra khi tạo thanh toán:', error);
         }
     };
 
@@ -80,7 +174,7 @@ const MyCart = () => {
     useEffect(() => {
         fetchCartItems();
         console.log("Updated cartItems:", cartItems);
-    }, []); // Chạy một lần khi component mount
+    }, []);
 
     const decreaseQuantity = async (cartId, cartItemId, size) => {
         setQuantities(prevQuantities => {
@@ -88,7 +182,7 @@ const MyCart = () => {
             if (newQuantities[cartItemId] > 1) {
                 newQuantities[cartItemId] -= 1;
             }
-            updateCartItem(cartId, cartItemId, newQuantities[cartItemId], size); // Update the quantity in the database
+            updateCartItem(cartId, cartItemId, newQuantities[cartItemId], size);
             return newQuantities;
         });
     };
@@ -97,7 +191,7 @@ const MyCart = () => {
         setQuantities(prevQuantities => {
             const newQuantities = { ...prevQuantities };
             newQuantities[cartItemId] += 1;
-            updateCartItem(cartId, cartItemId, newQuantities[cartItemId], size); // Update the quantity in the database
+            updateCartItem(cartId, cartItemId, newQuantities[cartItemId], size);
             return newQuantities;
         });
     };
@@ -112,6 +206,47 @@ const MyCart = () => {
             }
         }catch(error){
             setErrorMessage(error.message)
+        }
+    }
+    const handleWallet = async () => {
+        try {
+            const orderData = {
+                customer: {
+                    id: customer.customerId,
+                    lastName: customer.lastName,
+                    firstName: customer.firstName,
+                    phoneNumber: customer.phoneNumber,
+                    address: customer.address
+                },
+                items: cartItems.map(item => ({
+                    product: { id: item.productId },
+                    quantity: item.quantity,
+                    size: item.size,
+                    price: item.price,
+                    color: item.color
+                })),
+                paymentMethod
+            };
+
+            console.error("Error cartItems:", cartItems)
+
+            console.error("Error order:", orderData)
+            
+            const result = await addOrder(orderData);
+            if (result) {
+                toast.success("Đơn hàng đặt thành công!");
+
+                for (const item of cartItems) {
+                    await handleDelete(localStorage.getItem('cartId'), item.cartId);
+                }
+
+            } else {
+                console.error('Error creating order:', result.message);
+                setErrorMessage(result.message);
+            }
+        } catch (error) {
+            console.error('Error submitting order:', error);
+            setErrorMessage(error.message);
         }
     }
 
@@ -129,8 +264,10 @@ const MyCart = () => {
                     product: { id: item.productId },
                     quantity: item.quantity,
                     size: item.size,
-                    price: item.price
-                }))
+                    price: item.price,
+                    color: item.color
+                })),
+                paymentMethod
             };
 
             console.error("Error cartItems:", cartItems)
@@ -172,6 +309,13 @@ const MyCart = () => {
     };
   return (
     <>
+        {isLoading && (
+            <div className="fullscreen-spinner">
+                <div className="spinner"></div>
+            </div>
+        )}
+
+
         <div className = "container-fluid mx-5 mt-4" style = {{borderBottom : "1px solid rgba(0, 0 , 0 ,0.2)"}}>
             <div className = 'mb-2'>
                 <Link to = "/home" style = {{textDecoration:'none', color:'#808080'}}>Trang chủ &gt; </Link>
@@ -188,6 +332,7 @@ const MyCart = () => {
                             <th style = {{color:'#808080', fontWeight: "none"}}>Sản phẩm</th>
                             <th style = {{color:'#808080', fontWeight: "none"}}></th>
                             <th style = {{color:'#808080', fontWeight: "none"}}>Kích thước</th>
+                            <th style = {{color:'#808080', fontWeight: "none"}}>Màu sắc</th>
                             <th style = {{color:'#808080', fontWeight: "none"}}>Giá sản phẩm</th>
                             <th style = {{color:'#808080', fontWeight: "none"}}>Phiếu giảm giá</th>
                             <th style = {{color:'#808080', fontWeight: "none"}}>Số lượng</th>
@@ -202,7 +347,7 @@ const MyCart = () => {
                                 <td>
                                     {cartItem.imageProduct && (
                                         <img
-                                            src={`data:image/jpeg;base64,${cartItem.imageProduct}`}
+                                            src={cartItem.imageProduct}
                                             alt={`Photo of ${cartItem.imageProduct}`}
                                             style={{ width: '50px', height: '45px' }}
                                         />
@@ -210,10 +355,18 @@ const MyCart = () => {
                                 </td>
                                 <td>{cartItem.nameProduct}</td>
                                 <td>{cartItem.size}</td>
+                                <td>{cartItem.color}</td>
                                 <td className='text-danger'>{formatCurrency(cartItem.price)}</td>
                                 <td>
                                 <span style={{ fontSize: '12px', color: 'white', backgroundColor: cartItem.disCount !== 0 ? 'red' : 'green', padding: '2px 5px', borderRadius: '3px', fontWeight: 'bold' }}>
-                                            {cartItem.disCount !== 0 ?  `Giảm ${cartItem.disCount}%`  : 'Không có giảm giá'}
+                                {
+                                cartItem.disCount !== 0
+                                    ? (cartItem.percentage
+                                        ? `Giảm ${cartItem.disCount}%`
+                                        : `Giảm ${formatCurrency(cartItem.disCount)}`)
+                                    : 'Không có giảm giá'
+                                }
+
                                 </span>
                                 </td>
                                 <td><div className="d-flex align-items-center justify-content-center h-100">
@@ -227,7 +380,10 @@ const MyCart = () => {
                                     />
                                 <button className="btn btn-primary" onClick={() => increaseQuantity(localStorage.getItem('cartId'),cartItem.cartId, cartItem.size)}>+</button>
                                 </div></td>
-                                <td className='text-danger'>{formatCurrency((cartItem.price - cartItem.price * (cartItem.disCount / 100 ))* cartItem.quantity)}</td>
+                                <td className='text-danger'>{
+                                cartItem.disCount ? formatCurrency(cartItem.percentage ? ((cartItem.price - cartItem.price * (cartItem.disCount / 100 ))* cartItem.quantity) : ((cartItem.price - cartItem.disCount))* cartItem.quantity)
+                                    : formatCurrency(cartItem.price * cartItem.quantity)
+                                }</td>
                                 <td>
                                 <button className="btn btn-sm" onClick={() => handleDelete(localStorage.getItem('cartId'), cartItem.cartId)}>
                                     <p style = {{fontSize: '20px'}}>×</p>
@@ -328,7 +484,10 @@ const MyCart = () => {
                                     {cartItems.map((cartItem) => (
                                     <tr key={cartItem.cartId} className='text-center'>
                                         <td className='text-start'>{cartItem.nameProduct}</td>
-                                        <td className ="text-end text-danger">{formatCurrency((cartItem.price - cartItem.price * (cartItem.disCount / 100 ))* cartItem.quantity)}</td>
+                                        <td className ="text-end text-danger">{
+                                        cartItem.disCount ? formatCurrency(cartItem.percentage ? ((cartItem.price - cartItem.price * (cartItem.disCount / 100 ))* cartItem.quantity) : ((cartItem.price - cartItem.disCount))* cartItem.quantity)
+                                        : formatCurrency(cartItem.price * cartItem.quantity)
+                                        }</td>
                                     </tr>
                                     ))}
                                 </tbody>
@@ -337,35 +496,42 @@ const MyCart = () => {
                             <div className='mt-2' style = {{borderTop: "1px solid orange"}}>
                                 <p className='mt-2'><strong>Chọn hình thức thanh toán:</strong></p>
                                 <div>
-                                    <label>
-                                        <input
-                                            type="radio"
-                                            value="online" className = 'mx-2'
-                                            disabled
-                                        />
-                                        Thanh toán trực tuyến
-                                    </label>
+                                <label className={paymentMethod === "VNPAY" ? "text-success" : ""}>
+                                    <input
+                                    type="radio"
+                                    value="VNPAY"
+                                    className="mx-2"
+                                    checked={paymentMethod === "VNPAY"}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    />
+                                    Thanh toán qua VNPay
+                                </label>
                                 </div>
+
                                 <div>
-                                    <label style={{ color: 'green' }}>
-                                        <input
-                                            type="radio"
-                                            value="cash" className = 'mx-2'
-                                            checked
-                                            readOnly
-                                        />
-                                        Thanh toán khi nhận hàng
-                                    </label>
+                                <label className={paymentMethod === "E_WALLET" ? "text-success" : ""}>
+                                    <input
+                                    type="radio"
+                                    value="E_WALLET"
+                                    className="mx-2"
+                                    checked={paymentMethod === "E_WALLET"}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    />
+                                    Thanh toán qua ví điện tử
+                                </label>
                                 </div>
+
                                 <div>
-                                    <label>
-                                        <input
-                                            type="radio"
-                                            value="bank" className = 'mx-2'
-                                            disabled
-                                        />
-                                        Chuyển khoản ngân hàng
-                                    </label>
+                                <label className={paymentMethod === "COD" ? "text-success" : ""}>
+                                    <input
+                                    type="radio"
+                                    value="COD"
+                                    className="mx-2"
+                                    checked={paymentMethod === "COD"}
+                                    onChange={(e) => setPaymentMethod(e.target.value)}
+                                    />
+                                    Thanh toán khi nhận hàng
+                                </label>
                                 </div>
                             </div>
 
@@ -373,8 +539,24 @@ const MyCart = () => {
                                 <h5 className='mt-2'>Tổng tiền:</h5>
                                 <p className='mt-2 text-danger'><strong>{formatCurrency(totalMoney)}</strong></p>
                             </div>
+                            {paymentMethod === "COD" && (
+                            <button className="py-2 w-100 btn btn-warning" onClick={handleSubmitOrder}>
+                                <strong>Đặt hàng</strong>
+                            </button>
+                            )}
 
-                            <button className='py-2 w-100 btn btn-warning' onClick={handleSubmitOrder}><strong>Xác nhận đặt hàng</strong></button>
+                            {paymentMethod === "VNPAY" && (
+                            <button className="py-2 w-100 btn btn-success" onClick={() => handlePayment("aq211j12q", totalMoney)}>
+                                <strong>Thanh toán bằng VNPAY</strong>
+                            </button>
+                            )}
+
+                            {paymentMethod === "E_WALLET" && (
+                            <button className="py-2 w-100 btn btn-success" onClick={handleWallet}>
+                                <strong>Thanh toán qua ví điện tử</strong>
+                            </button>
+                            )}
+
                         </div>
                     </div>
                 </div>

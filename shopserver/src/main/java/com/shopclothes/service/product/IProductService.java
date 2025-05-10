@@ -14,11 +14,11 @@ public interface IProductService {
 
     List<Product> getAllProducts();
 
-    byte[] getProductPhotoById(Long id) throws SQLException;
+//    byte[] getProductPhotoById(Long id) throws SQLException;
 
     void deleteProduct(Long productId);
 
-    Product updateProduct(Long productId, String nameProduct, String codeProduct, String nameCategory, String description, double price, List<SizeQuantityDto> sizeQuantities, String nameBrand, byte[] photoBytes, double disCount);
+    Product updateProduct(Long productId, String nameProduct, String codeProduct, String nameCategory, String description, double price, List<SizeQuantityDto> sizeQuantities, String nameBrand, MultipartFile file, double disCount) throws IOException;
 
     Optional<Product> getProductById(Long productId);
 

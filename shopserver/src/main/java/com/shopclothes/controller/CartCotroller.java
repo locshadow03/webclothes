@@ -2,10 +2,12 @@ package com.shopclothes.controller;
 
 import com.shopclothes.dto.CartDto;
 import com.shopclothes.dto.ProductDto;
+import com.shopclothes.dto.event.DiscountAndPercentage;
 import com.shopclothes.model.Cart;
 import com.shopclothes.model.CartItem;
 import com.shopclothes.model.Product;
 import com.shopclothes.service.cart.ICartService;
+import com.shopclothes.service.event.IDiscountEventService;
 import com.shopclothes.service.product.IProductService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -25,6 +27,7 @@ import java.util.Optional;
 public class CartCotroller {
     private final ICartService cartService;
     private final IProductService productService;
+    private final IDiscountEventService discountEventService;
 
     @PostMapping("/create")
     public ResponseEntity<CartDto> createCart(@RequestParam Long userId) {
@@ -46,20 +49,36 @@ public class CartCotroller {
         List<CartDto> cartDtos = new ArrayList<>();
 
         for (CartItem cartItem : cartItems) {
-            byte[] photoBytes = productService.getProductPhotoById(cartItem.getProduct().getId());
-            if (photoBytes != null && photoBytes.length > 0) {
-                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
-                CartDto cartDto = new CartDto();
-                cartDto.setProductId(cartItem.getProduct().getId());
-                cartDto.setCartId(cartItem.getId());
-                cartDto.setNameProduct(cartItem.getProduct().getName());
-                cartDto.setPrice(cartItem.getPrice());
-                cartDto.setSize(cartItem.getSize());
-                cartDto.setQuantity(cartItem.getQuantity());
-                cartDto.setImageProduct(base64Photo);
-                cartDto.setDisCount(cartItem.getProduct().getDisCount());
-                cartDtos.add(cartDto);
+//            byte[] photoBytes = productService.getProductPhotoById(cartItem.getProduct().getId());
+//            if (photoBytes != null && photoBytes.length > 0) {
+//                String base64Photo = Base64.getEncoder().encodeToString(photoBytes);
+//                CartDto cartDto = new CartDto();
+//                cartDto.setProductId(cartItem.getProduct().getId());
+//                cartDto.setCartId(cartItem.getId());
+//                cartDto.setNameProduct(cartItem.getProduct().getName());
+//                cartDto.setPrice(cartItem.getPrice());
+//                cartDto.setSize(cartItem.getSize());
+//                cartDto.setQuantity(cartItem.getQuantity());
+//                cartDto.setImageProduct(base64Photo);
+//                cartDto.setDisCount(cartItem.getProduct().getDisCount());
+//                cartDtos.add(cartDto);
+//            }
+
+            DiscountAndPercentage discountAndPercentage = discountEventService.getDisCountProductNowByProductId(cartItem.getProduct().getId());
+            CartDto cartDto = new CartDto();
+            cartDto.setProductId(cartItem.getProduct().getId());
+            cartDto.setCartId(cartItem.getId());
+            cartDto.setNameProduct(cartItem.getProduct().getName());
+            cartDto.setPrice(cartItem.getPrice());
+            cartDto.setSize(cartItem.getSize());
+            cartDto.setColor(cartItem.getColor());
+            cartDto.setQuantity(cartItem.getQuantity());
+            cartDto.setImageProduct(cartItem.getProduct().getImageProduct());
+            if(discountAndPercentage != null){
+                cartDto.setPercentage(discountAndPercentage.isPercentage());
+                cartDto.setDisCount(discountAndPercentage.getDiscount());
             }
+            cartDtos.add(cartDto);
         }
         return ResponseEntity.ok(cartDtos);
     }
@@ -68,9 +87,10 @@ public class CartCotroller {
     public ResponseEntity<CartDto> addProductToCart(@PathVariable Long cartId,
                                                     @RequestParam Long productId,
                                                     @RequestParam int quantity,
-                                                    @RequestParam String size) {
+                                                    @RequestParam String size,
+                                                    @RequestParam String color) {
 
-        Cart cart = cartService.addProductToCart(cartId, productId, quantity, size);
+        Cart cart = cartService.addProductToCart(cartId, productId, quantity, size, color);
 
         // Tạo DTO để trả về
         CartDto cartDto = new CartDto();
@@ -79,6 +99,7 @@ public class CartCotroller {
         cartDto.setQuantity(quantity);
         cartDto.setSize(size);
         cartDto.setProductId(productId);
+        cartDto.setColor(color);
 
         return ResponseEntity.ok(cartDto);
     }
@@ -89,7 +110,7 @@ public class CartCotroller {
     }
 
     @PutMapping("/{cartId}/update/{cartItemId}")
-    public void updateProductQuantity(@PathVariable Long cartId, @PathVariable Long cartItemId, @RequestParam int quantity, @RequestParam String size) {
-        cartService.updateProductQuantity(cartId, cartItemId, quantity, size);
+    public void updateProductQuantity(@PathVariable Long cartId, @PathVariable Long cartItemId, @RequestParam int quantity, @RequestParam String size, @RequestParam String color) {
+        cartService.updateProductQuantity(cartId, cartItemId, quantity, size, color);
     }
 }

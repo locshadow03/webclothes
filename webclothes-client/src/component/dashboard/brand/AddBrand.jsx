@@ -31,12 +31,12 @@ const AddBrand = () => {
         try {
             const success = await addBrand(newBrand.nameBrand,newBrand.photo)
             if (success !== undefined) {
-                setSuccessMessage("A new brand was added to the database!")
+                setSuccessMessage("Thương hiệu mới được thêm vào thành công!")
                 setNewBrand({ nameBrand: "",photo: null})
                 setImagePreview("")
                 setErrorMessage("")
             } else {
-                setErrorMessage("Error adding brand")
+                setErrorMessage("Lỗi trong quá trình thêm thương hiệu!")
             }
         } catch (error) {
             setErrorMessage(error.message)

@@ -2,11 +2,14 @@ package com.shopclothes.service.order;
 
 import com.shopclothes.dto.CustomerTotalAmountDto;
 import com.shopclothes.dto.ProductResponse;
+import com.shopclothes.dto.event.DiscountAndPercentage;
 import com.shopclothes.model.*;
 import com.shopclothes.repository.*;
+import com.shopclothes.service.event.IDiscountEventService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -24,13 +27,21 @@ public class OrderImpl implements IOrderService{
 
     private final SizeQuantityRepository sizeQuantityRepository;
 
+    private final ColorImageProductRepository colorImageProductRepository;
+
+    private final IDiscountEventService discountEventService;
+
+    private final WalletRepository walletRepository;
+
 
 
     @Override
-    public Order createOrder(Customer customer, List<OrderItem> items) {
+    public Order createOrder(Customer customer, List<OrderItem> items, String paymentMethod) {
         if (customer == null || customerRepository.findById(customer.getId()).isEmpty()) {
             throw new IllegalArgumentException("Customer không tồn tại.");
         }
+
+        Optional<Customer> customerNow = customerRepository.findById(customer.getId());
 
         String orderCode;
         do {
@@ -48,30 +59,79 @@ public class OrderImpl implements IOrderService{
                     .orElseThrow(() -> new IllegalArgumentException("Không tìm thấy size " + item.getSize() + " cho sản phẩm ID " + product.getId()));
 
             // Kiểm tra số lượng còn lại
-            if (sizeQuantity.getQuantity() < item.getQuantity()) {
+            int quantity = colorImageProductRepository.getQuanityByIdColorAndSizeQuantity(item.getColor(), sizeQuantity.getId()).getQuantity();
+            if (quantity < item.getQuantity()) {
                 throw new IllegalArgumentException("Không đủ số lượng cho size " + item.getSize() + " của sản phẩm ID " + product.getId());
             }
 
 
-            sizeQuantity.setQuantity(sizeQuantity.getQuantity() - item.getQuantity());
-            sizeQuantityRepository.save(sizeQuantity);
+//            sizeQuantity.setQuantity(sizeQuantity.getQuantity() - item.getQuantity());
+
+            ColorImageProduct colorImageProduct = colorImageProductRepository.getQuanityByIdColorAndSizeQuantity(item.getColor(), sizeQuantity.getId());
+            colorImageProduct.setQuantity(quantity - item.getQuantity());
+            colorImageProductRepository.save(colorImageProduct);
             // Đảm bảo giá sản phẩm là chính xác
-            item.setPrice(product.getPrice());
+            DiscountAndPercentage disCountProduct = discountEventService.getDisCountProductNowByProductId(product.getId());
+            item.setPrice(product.getPrice() - product.getPrice() *(disCountProduct.getDiscount() / 100));
+            if(disCountProduct.isPercentage()){
+                item.setPrice( product.getPrice() - product.getPrice() *(disCountProduct.getDiscount() / 100));
+            } else{
+                item.setPrice( product.getPrice() - disCountProduct.getDiscount());
+            }
             item.setSize(sizeQuantity.getSize());
-
-            totalAmountNow += item.getQuantity() *( product.getPrice() - product.getPrice() *(product.getDisCount() / 100));
+            item.setColor(colorImageProduct.getColor());
+            if(disCountProduct.isPercentage()){
+                totalAmountNow += item.getQuantity() *( product.getPrice() - product.getPrice() *(disCountProduct.getDiscount() / 100));
+            } else{
+                totalAmountNow += item.getQuantity() *( product.getPrice() - disCountProduct.getDiscount());
+            }
         }
+        PaymentMethod method = PaymentMethod.valueOf(paymentMethod.toUpperCase());
+        if (method == PaymentMethod.COD) {
+            Order order = new Order();
+            order.setOrderCode(orderCode);
+            order.setCustomer(customer);
+            order.setItems(items);
+            order.setTotalAmount(totalAmountNow);
+            order.setStatus("Chờ xác thực");
+            order.setPaymentStatus("Chưa thanh toán");
+            order.setPaymentMethod(PaymentMethod.COD);
 
-        Order order = new Order();
-        order.setOrderCode(orderCode);
-        order.setCustomer(customer);
-        order.setItems(items);
-        order.setTotalAmount(totalAmountNow);
-        order.setStatus("Chờ xác thực");
+            items.forEach(item -> item.setOrder(order));
 
-        items.forEach(item -> item.setOrder(order));
+            return orderRepository.save(order);
+        } else if (method == PaymentMethod.VNPAY) {
+            Order order = new Order();
+            order.setOrderCode(orderCode);
+            order.setCustomer(customer);
+            order.setItems(items);
+            order.setTotalAmount(totalAmountNow);
+            order.setStatus("Chờ xác thực");
+            order.setPaymentMethod(PaymentMethod.VNPAY);
+            order.setPaymentStatus("Đã thanh toán");
+            items.forEach(item -> item.setOrder(order));
 
-        return orderRepository.save(order);
+            return orderRepository.save(order);
+        } else if (method == PaymentMethod.E_WALLET) {
+            Order order = new Order();
+            order.setOrderCode(orderCode);
+            order.setCustomer(customer);
+            order.setItems(items);
+            order.setTotalAmount(totalAmountNow);
+            order.setStatus("Chờ xác thực");
+            order.setPaymentMethod(PaymentMethod.E_WALLET);
+            order.setPaymentStatus("Đã thanh toán");
+            items.forEach(item -> item.setOrder(order));
+
+            Wallet wallet = walletRepository.getWalletByUserId(customerNow.get().getUser().getId());
+            if(wallet.getBalance() >= totalAmountNow){
+                wallet.setBalance(wallet.getBalance() - totalAmountNow);
+                walletRepository.save(wallet);
+            }
+
+            return orderRepository.save(order);
+        }
+        return null;
     }
 
     private String generateOrderCode() {
@@ -142,6 +202,29 @@ public class OrderImpl implements IOrderService{
         // Kiểm tra nếu order tồn tại
         if (!orderRepository.existsById(orderId)) {
             throw new IllegalArgumentException("Order không tồn tại với ID: " + orderId);
+        }
+        Optional<Order> order = orderRepository.findById(orderId);
+        if("Đã thanh toán".equals(order.get().getPaymentStatus())){
+            Wallet wallet = walletRepository.getWalletByUserId(order.get().getCustomer().getUser().getId());
+            System.out.println(wallet.getBalance());
+            wallet.setBalance(wallet.getBalance() + order.get().getTotalAmount());
+            walletRepository.save(wallet);
+        }
+
+        for (OrderItem item : order.get().getItems()) {
+            Product product = item.getProduct();
+            String size = item.getSize();
+            String color = item.getColor();  // nếu bạn có lưu màu sắc trong OrderItem
+            int quantity = item.getQuantity();
+
+            SizeQuantity sizeQuantity = sizeQuantityRepository.findByProductAndSize(product, size)
+                    .orElseThrow(() -> new RuntimeException("Size not found"));
+            ColorImageProduct cip = colorImageProductRepository
+                    .findBySizeQuantityAndColor(sizeQuantity, color)
+                    .orElseThrow(() -> new RuntimeException("Color not found"));
+
+            cip.setQuantity(cip.getQuantity() + quantity);
+            colorImageProductRepository.save(cip);
         }
         // Xóa order
         orderRepository.deleteById(orderId);

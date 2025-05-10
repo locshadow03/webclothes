@@ -1,16 +1,13 @@
 package com.shopclothes.service.product;
 
+import com.shopclothes.dto.ColorImageProductDto;
 import com.shopclothes.dto.SizeQuantityDto;
 import com.shopclothes.extension.InternalServerException;
 import com.shopclothes.extension.ResourceNotFoundException;
-import com.shopclothes.model.Brand;
-import com.shopclothes.model.Category;
-import com.shopclothes.model.Product;
-import com.shopclothes.model.SizeQuantity;
-import com.shopclothes.repository.BrandRepository;
-import com.shopclothes.repository.CategoryRepository;
-import com.shopclothes.repository.ProductRepository;
-import com.shopclothes.repository.SizeQuantityRepository;
+import com.shopclothes.model.*;
+import com.shopclothes.repository.*;
+import com.shopclothes.service.upload.IImageService;
+import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -20,9 +17,7 @@ import javax.sql.rowset.serial.SerialBlob;
 import java.io.IOException;
 import java.sql.Blob;
 import java.sql.SQLException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -32,14 +27,16 @@ public class ProductImpl implements IProductService{
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
     private final SizeQuantityRepository sizeQuantityRepository;
+    private final IImageService imageService;
+    private final ColorImageProductRepository colorImageProductRepository;
 
     @Override
-    public Product addNewProduct(String name, String code, String nameCategory, String description, double price, List<SizeQuantityDto> sizeQuantities, MultipartFile imageProduct, String nameBrand, double disCount) throws SQLException, IOException {
+    public Product addNewProduct(String name, String code, String nameCategory, String description, double price, List<SizeQuantityDto> sizeQuantities, MultipartFile imageProduct, String nameBrand, double disCount) throws IOException {
         Optional<Category> categoryOpt = categoryRepository.findByNameCategory(nameCategory);
         Optional<Brand> brandOpt = brandRepository.findByName(nameBrand);
 
         if (!categoryOpt.isPresent() || !brandOpt.isPresent()) {
-            throw new IllegalArgumentException("Invalid category or brand name");
+            throw new IllegalArgumentException("Không tồn tại danh mục sản phẩm hoặc thương hiệu đã chọn!");
         }
         Category category = categoryOpt.get();
         Brand brand = brandOpt.get();
@@ -51,15 +48,15 @@ public class ProductImpl implements IProductService{
         product.setPrice(price);
         product.setBrand(brand);
         product.setDisCount(disCount);
-
-        if(!imageProduct.isEmpty()){
-            byte[] photoBytes = imageProduct.getBytes();
-            Blob photoBlob = new SerialBlob(photoBytes);
-            product.setImageProduct(photoBlob);
-        }
+        product.setImageProduct(imageService.saveImage(imageProduct));
 
         List<SizeQuantity> sizeQuantityList = sizeQuantities.stream()
-                .map(dto -> new SizeQuantity(null, dto.getSize(), dto.getQuantity(), product))
+                .map(dto -> {
+                    SizeQuantity sizeQuantity = new  SizeQuantity(null, dto.getSize(), new ArrayList<>(), product);
+                    List<ColorImageProduct> colorImageProducts = dto.getColorImageProductDtos().stream().map(colorDto -> new ColorImageProduct(null,colorDto.getImageProduct(), colorDto.getColor(), colorDto.getQuantity(), sizeQuantity)).collect(Collectors.toList());
+                    sizeQuantity.setColorImageProducts(colorImageProducts);
+                    return sizeQuantity;
+                })
                 .collect(Collectors.toList());
 
         product.setSizeQuantities(sizeQuantityList);
@@ -72,18 +69,18 @@ public class ProductImpl implements IProductService{
         return productRepository.findAll();
     }
 
-    @Override
-    public byte[] getProductPhotoById(Long productId) throws SQLException {
-        Optional<Product> theProduct = productRepository.findById(productId);
-        if(theProduct.isEmpty()){
-            throw  new ResourceNotFoundException("Sorry, Product not found!");
-        }
-        Blob photoBlob = theProduct.get().getImageProduct();
-        if(photoBlob != null){
-            return photoBlob.getBytes(1, (int) photoBlob.length());
-        }
-        return null;
-    }
+//    @Override
+//    public byte[] getProductPhotoById(Long productId) throws SQLException {
+//        Optional<Product> theProduct = productRepository.findById(productId);
+//        if(theProduct.isEmpty()){
+//            throw  new ResourceNotFoundException("Sorry, Product not found!");
+//        }
+//        Blob photoBlob = theProduct.get().getImageProduct();
+//        if(photoBlob != null){
+//            return photoBlob.getBytes(1, (int) photoBlob.length());
+//        }
+//        return null;
+//    }
 
     public void deleteProduct(Long productId){
         Optional<Product> theProduct = productRepository.findById(productId);
@@ -94,7 +91,7 @@ public class ProductImpl implements IProductService{
 
     @Transactional
     @Override
-    public Product updateProduct(Long productId, String nameProduct, String codeProduct, String nameCategory, String description, double price, List<SizeQuantityDto> sizeQuantities, String nameBrand, byte[] photoBytes, double disCount) {
+    public Product updateProduct(Long productId, String nameProduct, String codeProduct, String nameCategory, String description, double price, List<SizeQuantityDto> sizeQuantities, String nameBrand, MultipartFile file, double disCount) throws IOException {
         Optional<Category> categoryOpt = categoryRepository.findByNameCategory(nameCategory);
         Optional<Brand> brandOpt = brandRepository.findByName(nameBrand);
         if (!categoryOpt.isPresent() || !brandOpt.isPresent()) {
@@ -113,26 +110,87 @@ public class ProductImpl implements IProductService{
         product.setPrice(price);
         product.setBrand(brand);
         product.setDisCount(disCount);
+        imageService.deleteImage(product.getImageProduct());
+        product.setImageProduct(imageService.saveImage(file));
+        List<SizeQuantity> existingSizeQuantities = sizeQuantityRepository.findByProductId(productId);
 
-        // Xóa tất cả SizeQuantity hiện tại liên quan đến sản phẩm
-        sizeQuantityRepository.deleteByProduct_Id(productId);
+        Set<Long> incomingSizeIds = sizeQuantities.stream()
+                .filter(dto -> dto.getId() != null)
+                .map(SizeQuantityDto::getId)
+                .collect(Collectors.toSet());
 
-        // Thêm các SizeQuantity mới
-        List<SizeQuantity> newSizeQuantities = sizeQuantities.stream()
-                .map(dto -> new SizeQuantity(dto.getSize(), dto.getQuantity(), product))
-                .collect(Collectors.toList());
+        Iterator<SizeQuantity> sizeIterator = existingSizeQuantities.iterator();
 
-        product.setSizeQuantities(newSizeQuantities);
+        while (sizeIterator.hasNext()) {
+            SizeQuantity existingSize = sizeIterator.next();
+            System.out.println("Checking existing size: " + existingSize.getId());
 
-        // Cập nhật ảnh sản phẩm
-        if (photoBytes != null && photoBytes.length > 0) {
-            try {
-                product.setImageProduct(new SerialBlob(photoBytes));
-            } catch (SQLException ex) {
-                throw new InternalServerException("Error updating product image");
+            if (existingSize.getId() != null && !incomingSizeIds.contains(existingSize.getId())) {
+                System.out.println("Deleting size: " + existingSize.getId());
+
+                for (ColorImageProduct color : existingSize.getColorImageProducts()) {
+                    imageService.deleteImage(color.getImageProduct());
+                }
+                existingSize.getColorImageProducts().clear();
+
+                product.getSizeQuantities().removeIf(sq -> sq.getId().equals(existingSize.getId()));
+                sizeQuantityRepository.deleteById(existingSize.getId());
+
+            } else {
+                for (SizeQuantityDto sizeQuantityDto : sizeQuantities) {
+                    if (existingSize.getId().equals(sizeQuantityDto.getId())) {
+                        System.out.println("Deleting color for size: " + existingSize.getId());
+
+                        Set<Long> incomingColorIds = sizeQuantityDto.getColorImageProductDtos().stream()
+                                .filter(dto -> dto.getId() != null)
+                                .map(ColorImageProductDto::getId)
+                                .collect(Collectors.toSet());
+
+                        Iterator<ColorImageProduct> colorIterator = existingSize.getColorImageProducts().iterator();
+
+                        while (colorIterator.hasNext()) {
+                            ColorImageProduct existingColor = colorIterator.next();
+                            if (existingColor.getId() != null && !incomingColorIds.contains(existingColor.getId())) {
+                                imageService.deleteImage(existingColor.getImageProduct());
+                                colorIterator.remove();
+                            }
+                        }
+                    }
+                }
             }
         }
+        productRepository.save(product);
 
+
+
+
+        for(SizeQuantityDto sizeQuantityDtoNow : sizeQuantities){
+            if(sizeQuantityRepository.getSizeQuantitiesById(sizeQuantityDtoNow.getId()) != null){
+                SizeQuantity sizeQuantity = sizeQuantityRepository.getSizeQuantitiesById(sizeQuantityDtoNow.getId());
+                sizeQuantity.setSize(sizeQuantityDtoNow.getSize());
+                for(ColorImageProductDto colorImageProductDto : sizeQuantityDtoNow.getColorImageProductDtos()){
+                    if(colorImageProductDto.getId() != null){
+                        ColorImageProduct colorImageProduct = colorImageProductRepository.getColorImageProductById(colorImageProductDto.getId());
+                        colorImageProduct.setColor(colorImageProductDto.getColor());
+                        colorImageProduct.setQuantity(colorImageProductDto.getQuantity());
+                        if(colorImageProductDto.getImageProduct() != null){
+                            imageService.deleteImage(colorImageProduct.getImageProduct());
+                            colorImageProduct.setImageProduct(colorImageProductDto.getImageProduct());
+                        }
+
+                    } else {
+                        ColorImageProduct colorImageProduct = new ColorImageProduct(null, colorImageProductDto.getImageProduct(), colorImageProductDto.getColor(), colorImageProductDto.getQuantity(), sizeQuantity);
+                        colorImageProductRepository.save(colorImageProduct);
+                    }
+                }
+            } else{
+                SizeQuantity sizeQuantity = new SizeQuantity(null, sizeQuantityDtoNow.getSize(), new ArrayList<>(), product);
+                List<ColorImageProduct> colorImageProducts = sizeQuantityDtoNow.getColorImageProductDtos().stream().map(colorDto -> new ColorImageProduct(null, colorDto.getImageProduct(), colorDto.getColor(), colorDto.getQuantity(), sizeQuantity)).collect(Collectors.toList());
+
+                sizeQuantity.setColorImageProducts(colorImageProducts);
+                sizeQuantityRepository.save(sizeQuantity);
+            }
+        }
         return productRepository.save(product);
     }
 

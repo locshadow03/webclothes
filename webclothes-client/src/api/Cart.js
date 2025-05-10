@@ -18,11 +18,12 @@ api.interceptors.request.use(
 );
 
 
-export async function addCartItem(cartId,productId, quantity, size){
+export async function addCartItem(cartId,productId, quantity, size, color){
     const formData = new FormData()
     formData.append("productId", productId)
     formData.append("quantity", quantity)
     formData.append("size", size)
+    formData.append("color", color)
 
     const response = await api.post(`/${cartId}/add`, formData)
     if(response.status === 201){
@@ -32,10 +33,11 @@ export async function addCartItem(cartId,productId, quantity, size){
     }
 }
 
-export async function updateCartItem(cartId,cartItemId, quantity, size){
+export async function updateCartItem(cartId,cartItemId, quantity, size, color){
     const formData = new FormData()
     formData.append("quantity", quantity)
     formData.append("size", size)
+    formData.append("color", color)
 
     await api.put(`/${cartId}/update/${cartItemId}`, formData)
 }

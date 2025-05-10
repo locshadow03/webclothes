@@ -60,6 +60,7 @@ export async function updateBrand(brandId, brandData){
 export async function getBrandById(brandId){
     try{
         const result = await api.get(`/brand/${brandId}`)
+        console.log('hello', result.data)
         return result.data
     }catch(error){
         throw new Error(`Error fetching brand ${error.message}`)

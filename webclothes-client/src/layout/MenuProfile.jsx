@@ -93,6 +93,11 @@ const MenuProfile = () => {
                     onClick={() => handleLinkClick('orders')}><i class="bi bi-receipt mx-2"  
                     style = {{color: "red"}}></i>Đơn hàng</Link>
             </li>
+
+            <li class="nav-item">
+                <Link to = {`/home/wallet/${userId}`} class="nav-link text-black" href="#"><i class="bi bi-credit-card-fill mx-2" style = {{color: "blue"}}></i>Ví điện tử</Link>
+            </li>
+
             <li class="nav-item">
                 <a class="nav-link text-black" href="#"><i class="bi bi-bell-fill mx-2" style = {{color: "blue"}}></i>Thông báo</a>
             </li>

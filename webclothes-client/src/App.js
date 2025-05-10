@@ -34,7 +34,11 @@ import Chart from './component/dashboard/tke/Chart.jsx';
 import ProductSearch from './component/home/ProductSearch.jsx';
 import Help from './component/home/Help.jsx';
 import AllContact from './component/dashboard/contact/AllContact.jsx';
-
+import AllEvent from './component/dashboard/event/AllEvent.jsx';
+import AddEvents from './component/dashboard/event/AddEvents.jsx';
+import EditEvents from './component/dashboard/event/EditEvents.jsx';
+import PaymentResult from './component/dashboard/order/PaymentResult.jsx';
+import WalletPage from './component/home/WalletPage.jsx';
 
 // Bố cục với Navbar và Menu
 const MainLayout = ({ children }) => (
@@ -96,6 +100,7 @@ function App() {
             <Route path="/home" element={<HomeLayout><Home /></HomeLayout>} />
             <Route path="/home/account/profile/:userId" element={<ProfileLayout><Profile /></ProfileLayout>} />
             <Route path="/home/account/order/:customerId" element={<ProfileLayout><MyOrder /></ProfileLayout>} />
+            <Route path="/home/wallet/:userId" element={<ProfileLayout><WalletPage /></ProfileLayout>} />
             <Route path="/home/help" element={<HomeLayout><Help /></HomeLayout>} />
 
             <Route path="/home/product-detail/:productId" element={<HomeLayout><ProductDetail /></HomeLayout>} />
@@ -119,6 +124,10 @@ function App() {
             <Route path="/dashboard/product/add/new-product" element={<MainLayout><AddProduct /></MainLayout>} />
             <Route path="/dashboard/product/update/:productId" element={<MainLayout><EditProduct /></MainLayout>} />
 
+            <Route path="/dashboard/event" element={<MainLayout><AllEvent /></MainLayout>} />
+            <Route path="/dashboard/event/add-event" element={<MainLayout><AddEvents /></MainLayout>} />
+            <Route path="/dashboard/event/edit-event/:eventId" element={<MainLayout><EditEvents /></MainLayout>} />
+
             <Route path="/dashboard/order" element={<MainLayout><AllOrder /></MainLayout>} />
             <Route path="/dashboard/chart" element={<MainLayout><Chart /></MainLayout>} />
 
@@ -128,6 +137,8 @@ function App() {
             <Route path="/dashboard/user" element={<MainLayout><AllUsers /></MainLayout>} />
 
             <Route path="/dashboard/contact" element={<MainLayout><AllContact /></MainLayout>} />
+
+            {/* <Route path="/payment-result" element={<MainLayout><PaymentResult /></MainLayout>} /> */}
           </Routes>
         </Router>
       </main>
