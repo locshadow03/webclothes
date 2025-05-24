@@ -1,5 +1,6 @@
 package com.shopclothes.dto;
 
+import com.shopclothes.model.Product;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -17,6 +18,8 @@ public class FavoriteProductDto {
     private double price;
     private String productImage;
     private LocalDateTime dateAdded;
+    private boolean percentage;
+    private Product product;
 
     public FavoriteProductDto(String productName, double disCount, double price, String productImage) {
         this.productName = productName;

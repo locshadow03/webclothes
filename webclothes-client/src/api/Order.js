@@ -17,6 +17,16 @@ api.interceptors.request.use(
     }
 );
 
+
+export async function getOrderCode(){
+    const response = await api.get("/create_order_code")
+    if(response !== null){
+        return response.data
+    } else {
+        return 0;
+    }
+}
+
 export async function addOrder(orderData){
     console.log("Sending order data:", JSON.stringify(orderData, null, 2));
     const response = await api.post("/add-order", orderData)
@@ -41,6 +51,14 @@ export async function updateStatusOrder(orderId,status){
     const formData = new FormData()
     formData.append("status", status)
     const response = await api.put(`/update-status/${orderId}`, formData)
+    return response
+}
+
+export async function updatePaymentStatusOrder(orderId,paymentStatus){
+    const formData = new FormData()
+    console.log("Hien thi lai: ", paymentStatus)
+    formData.append("paymentStatus", paymentStatus)
+    const response = await api.put(`/update_payment_status/${orderId}`, formData)
     return response
 }
 

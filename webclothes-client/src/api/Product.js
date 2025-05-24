@@ -17,7 +17,7 @@ api.interceptors.request.use(
     }
 );
 
-export async function addProduct(nameProduct,codeProduct,nameCategory, description,price,sizeQuantities,nameBrand, disCount, photo){
+export async function addProduct(nameProduct,codeProduct,nameCategory, description,price,sizeQuantities,nameBrand, photo){
     const formData = new FormData()
     formData.append("nameProduct", nameProduct)
     formData.append("codeProduct", codeProduct)
@@ -25,7 +25,6 @@ export async function addProduct(nameProduct,codeProduct,nameCategory, descripti
     formData.append("description", description)
     formData.append("price", price)
     formData.append("nameBrand", nameBrand)
-    formData.append("disCount", disCount)
     formData.append("photo", photo)
     let colorIndices = [];
     let sizeIndices = [];
@@ -73,9 +72,9 @@ export async function updateProduct(productId,productData){
     formData.append("description", productData.description)
     formData.append("price", productData.price)
     formData.append("nameBrand", productData.nameBrand)
-    formData.append("disCount", productData.disCount)
+    if(productData.imageProduct != null){
     formData.append("imageProductMain", productData.imageProduct)
-    
+    }
     console.log("hien thi het: ", productData.sizeQuantities)
     let colorIndices = [];
     let sizeIndices = [];

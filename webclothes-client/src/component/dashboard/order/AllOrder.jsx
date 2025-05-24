@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react'
 import ProductPaginator from '../../common/ProductPaginator'
-import { deleteOrder, getAllOrders, getDetailById, updateStatusOrder } from '../../../api/Order'
+import { deleteOrder, getAllOrders, getDetailById, updatePaymentStatusOrder, updateStatusOrder } from '../../../api/Order'
 import { FaEye, FaTrashAlt } from 'react-icons/fa'
 import { toast } from 'react-toastify'
 import { getBill } from '../../../api/Bill'
@@ -19,10 +19,25 @@ const AllOrder = () => {
         'Giao hàng thành công'
     ];
 
+    const orderPaymentStatuses = [
+        'Chưa thanh toán',
+        'Đã thanh toán'
+    ];
+
     const handleStatusChange = async (orderId, newStatus) => {
         try {
             await updateStatusOrder(orderId, newStatus);
             fetchOrders();
+        } catch (error) {
+            setErrorMessage(error.message);
+        }
+    };
+
+    const handlePaymentStatusChange = async (orderId, newStatus) => {
+        try {
+            await updatePaymentStatusOrder(orderId, newStatus);
+            fetchOrders();
+            console.log("Hien thi paymentStatus", newStatus)
         } catch (error) {
             setErrorMessage(error.message);
         }
@@ -167,7 +182,17 @@ const AllOrder = () => {
                         <td>{order.phoneNumber}</td>
                         <td>{order.address}</td>
                         <td>{order.paymentMethod}</td>
-                        <td>{order.paymentStatus}</td>
+
+                        <td>
+                            <select className="py-2 status-select" 
+                                value={order.paymentStatus}
+                                onChange={(e) => handlePaymentStatusChange(order.orderId, e.target.value)}
+                            >
+                            {orderPaymentStatuses.map(payMentStatus => (
+                                <option key={payMentStatus} value={payMentStatus}>{payMentStatus}</option>
+                            ))}
+                            </select>
+                         </td>
                         
                         <td>
                             <select className={`py-2 status-select ${getStatusClass(order.statusOrder)}`}

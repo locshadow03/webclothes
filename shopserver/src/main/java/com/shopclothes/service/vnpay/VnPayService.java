@@ -36,14 +36,11 @@ public class VnPayService {
             vnpParams.put("vnp_Locale", "vn");
             vnpParams.put("vnp_IpAddr", VNP_IP);
 
-            // ✅ Tạo chuỗi dữ liệu để hash
             String hashData = hashAllParams(vnpParams);
             String secureHash = HMAC_SHA256(VNP_HASH_SECRET, hashData);
 
-            // ✅ Sau khi hash xong, mới thêm vnp_SecureHash vào map
             vnpParams.put("vnp_SecureHash", secureHash);
 
-            // ✅ Tạo query string từ vnpParams (bao gồm cả vnp_SecureHash)
             StringBuilder queryString = new StringBuilder();
             for (Map.Entry<String, String> entry : vnpParams.entrySet()) {
                 queryString.append(URLEncoder.encode(entry.getKey(), StandardCharsets.US_ASCII))
@@ -60,7 +57,6 @@ public class VnPayService {
         }
     }
 
-    // ✅ Hàm này dùng để tạo chuỗi hashData với URL encoding
     public String hashAllParams(Map<String, String> vnpParams) {
         StringBuilder hashData = new StringBuilder();
 

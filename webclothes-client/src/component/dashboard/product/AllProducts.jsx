@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { FaEdit, FaEye, FaTrashAlt} from 'react-icons/fa';
 import { deleteProduct, getAllProducts, getProductById } from '../../../api/Product';
 import ProductPaginator from '../../common/ProductPaginator';
+import { toast } from 'react-toastify';
 
 const AllProducts = () => {
     const[products, setProducts] = useState([])
@@ -54,6 +55,7 @@ const AllProducts = () => {
             if(result === ""){
                 setSuccessMessage(`Product no ${productId} was delete`)
                 fetchProducts()
+                toast.success("Xóa sản phẩm thành công!")
             } else{
                 console.error(`Error deleting product: ${result.message}`)
             }

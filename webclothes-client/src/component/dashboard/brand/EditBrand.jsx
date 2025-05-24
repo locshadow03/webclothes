@@ -46,7 +46,7 @@ const EditBrand = () => {
       try {
           const response = await updateBrand(brandId, brand)
           if (response.status === 200){
-            setSuccessMessage("Brand updated successfully!")
+            setSuccessMessage("Cập nhật thông tin thương hiệu thành công!")
             const updateBrandData = await getBrandById(brandId)
             setBrand(updateBrandData)
 			// setImagePreview(`data:image/jpeg;base64,${updateBrandData.imageBrand}`)

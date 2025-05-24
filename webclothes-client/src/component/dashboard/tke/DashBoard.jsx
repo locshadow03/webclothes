@@ -414,7 +414,7 @@ const fetchTopProduct = async () =>{
                           <td>
                             {product.img && (
                               <img
-                              src={`data:image/jpeg;base64,${product.img}`}
+                              src={product.img}
                               alt={`Photo of ${product.img}`}
                               style={{ width: '150px', height: '100px',objectFit: "cover"}}
                               />

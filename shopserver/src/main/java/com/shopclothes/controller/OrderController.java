@@ -9,6 +9,7 @@ import com.shopclothes.repository.CustomerRepository;
 import com.shopclothes.service.order.IOrderService;
 import com.shopclothes.service.product.IProductService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +18,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Base64;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 @CrossOrigin("http://localhost:3000")
@@ -30,7 +32,8 @@ public class OrderController {
 
 
     @PostMapping("/add-order")
-    public ResponseEntity<OrderDto> createOrder(@RequestBody CreateOrderRequest request) {
+    public ResponseEntity<?> createOrder(@RequestBody CreateOrderRequest request) {
+        try{
         Customer customer = request.getCustomer();
         List<OrderItem> items = request.getItems();
         Customer existingCustomer = customerRepository.findById(customer.getId())
@@ -42,12 +45,28 @@ public class OrderController {
 
         customerRepository.save(existingCustomer);
 
-        Order order = orderService.createOrder(customer, items, request.getPaymentMethod());
+        String orderCode = request.getOrderCode();
+
+        Order order = orderService.createOrder(customer,orderCode, items, request.getPaymentMethod());
         OrderDto orderDto = new OrderDto();
         orderDto.setCustomerId(order.getCustomer().getId());
         orderDto.setTotalAmount(order.getTotalAmount());
         orderDto.setStatusOrder(order.getStatus());
         return ResponseEntity.ok(orderDto);
+        } catch (IllegalArgumentException e) {
+            // Trả về thông báo lỗi nếu có IllegalArgumentException
+            return ResponseEntity.badRequest().body(Map.of("message", e.getMessage()));
+        } catch (Exception e) {
+            // Trả về thông báo lỗi chung nếu xảy ra lỗi khác
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(Map.of("message", "Đã xảy ra lỗi khi tạo đơn hàng. Vui lòng thử lại."));
+        }
+    }
+
+    @GetMapping("/create_order_code")
+    public String createOrderCode(){
+        String orderCode = orderService.CreateOrderCode();
+        return orderCode;
     }
 
     @GetMapping("/all-order")
@@ -86,6 +105,25 @@ public class OrderController {
         orderDto.setPhoneNumber(updatedOrder.getCustomer().getPhoneNumber());
         orderDto.setAddress(updatedOrder.getCustomer().getAddress());
         orderDto.setStatusOrder(updatedOrder.getStatus());
+        orderDto.setTotalAmount(orderService.calculateTotalAmount(updatedOrder.getItems()));
+        orderDto.setOrderDate(updatedOrder.getOrderDate());
+
+        return ResponseEntity.ok(orderDto);
+    }
+
+    @PutMapping("/update_payment_status/{orderId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<OrderDto> updateOrderPaymentStatus(@PathVariable Long orderId, @RequestParam("paymentStatus") String status) {
+        Order updatedOrder = orderService.updateOrderPaymentStatus(orderId, status);
+        OrderDto orderDto = new OrderDto();
+        orderDto.setOrderId(updatedOrder.getId());
+        orderDto.setCustomerId(updatedOrder.getCustomer().getId());
+        orderDto.setOrderCode(updatedOrder.getOrderCode());
+        orderDto.setFirstName(updatedOrder.getCustomer().getFirstName());
+        orderDto.setPhoneNumber(updatedOrder.getCustomer().getPhoneNumber());
+        orderDto.setAddress(updatedOrder.getCustomer().getAddress());
+        orderDto.setStatusOrder(updatedOrder.getStatus());
+        orderDto.setPaymentStatus(updatedOrder.getPaymentStatus());
         orderDto.setTotalAmount(orderService.calculateTotalAmount(updatedOrder.getItems()));
         orderDto.setOrderDate(updatedOrder.getOrderDate());
 

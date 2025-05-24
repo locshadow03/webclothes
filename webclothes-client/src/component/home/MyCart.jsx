@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { deleteCartItem, getAllCartItems, updateCartItem } from '../../api/Cart'
 import { getCustomerById } from '../../api/Customer'
-import { addOrder } from '../../api/Order'
+import { addOrder, getOrderCode } from '../../api/Order'
 import { toast } from 'react-toastify'
 import { createPayment } from '../../api/PayMent'
 import { useLocation } from 'react-router-dom';
@@ -12,6 +12,7 @@ const MyCart = () => {
     const[selectedSize, setSelectedSize] = useState({});
     const[errorMessage, setErrorMessage] = useState("")
     const[quantities, setQuantities] = useState({})
+    const[orderCode, setOrderCode] = useState("")
     
     const[totalMoney, setTotalMoney] = useState(0)
     const location = useLocation();
@@ -130,7 +131,8 @@ const MyCart = () => {
         }
     };
 
-    const handlePayment = async (orderCode, amount) => {
+    const handlePayment = async (amount) => {
+
         const orderData = {
             customer: {
                 id: customer.customerId,
@@ -139,6 +141,7 @@ const MyCart = () => {
                 phoneNumber: customer.phoneNumber,
                 address: customer.address
             },
+            orderCode: orderCode,
             items: cartItems.map(item => ({
                 product: { id: item.productId },
                 quantity: item.quantity,
@@ -156,7 +159,7 @@ const MyCart = () => {
         console.log("Order Data: ", orderData);
         try {
             // Gửi yêu cầu để lấy URL thanh toán từ backend
-            const response = await createPayment(orderCode, amount)
+            const response = await createPayment(JSON.stringify(orderCode), amount)
 
             console.log("URL: ", response);
 
@@ -164,6 +167,9 @@ const MyCart = () => {
             
         } catch (error) {
             console.error('Có lỗi xảy ra khi tạo thanh toán:', error);
+            const errorMessage = error.response?.data?.message || error.message;
+            console.error("Error:", errorMessage);
+            toast.error(errorMessage);
         }
     };
 
@@ -171,8 +177,16 @@ const MyCart = () => {
         window.location.reload();
     };
 
+    const fetchOrderCode = async () => {
+        const result = await getOrderCode()
+        setOrderCode(result)
+    }
+
+    
+
     useEffect(() => {
         fetchCartItems();
+        fetchOrderCode();
         console.log("Updated cartItems:", cartItems);
     }, []);
 
@@ -218,6 +232,7 @@ const MyCart = () => {
                     phoneNumber: customer.phoneNumber,
                     address: customer.address
                 },
+                orderCode: orderCode,
                 items: cartItems.map(item => ({
                     product: { id: item.productId },
                     quantity: item.quantity,
@@ -246,12 +261,15 @@ const MyCart = () => {
             }
         } catch (error) {
             console.error('Error submitting order:', error);
-            setErrorMessage(error.message);
+            const errorMessage = error.response?.data?.message || error.message;
+            console.error("Error:", errorMessage);
+            toast.error(errorMessage);
         }
     }
 
     const handleSubmitOrder = async () => {
         try {
+
             const orderData = {
                 customer: {
                     id: customer.customerId,
@@ -260,6 +278,7 @@ const MyCart = () => {
                     phoneNumber: customer.phoneNumber,
                     address: customer.address
                 },
+                orderCode: orderCode,
                 items: cartItems.map(item => ({
                     product: { id: item.productId },
                     quantity: item.quantity,
@@ -288,7 +307,9 @@ const MyCart = () => {
             }
         } catch (error) {
             console.error('Error submitting order:', error);
-            setErrorMessage(error.message);
+            const errorMessage = error.response?.data?.message || error.message;
+            console.error("Error:", errorMessage);
+            toast.error(errorMessage);
         }
     };
 
@@ -360,7 +381,7 @@ const MyCart = () => {
                                 <td>
                                 <span style={{ fontSize: '12px', color: 'white', backgroundColor: cartItem.disCount !== 0 ? 'red' : 'green', padding: '2px 5px', borderRadius: '3px', fontWeight: 'bold' }}>
                                 {
-                                cartItem.disCount !== 0
+                                cartItem.disCount > 0
                                     ? (cartItem.percentage
                                         ? `Giảm ${cartItem.disCount}%`
                                         : `Giảm ${formatCurrency(cartItem.disCount)}`)
@@ -546,7 +567,7 @@ const MyCart = () => {
                             )}
 
                             {paymentMethod === "VNPAY" && (
-                            <button className="py-2 w-100 btn btn-success" onClick={() => handlePayment("aq211j12q", totalMoney)}>
+                            <button className="py-2 w-100 btn btn-success" onClick={() => handlePayment(totalMoney)}>
                                 <strong>Thanh toán bằng VNPAY</strong>
                             </button>
                             )}

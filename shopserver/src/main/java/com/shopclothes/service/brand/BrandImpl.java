@@ -104,7 +104,10 @@ public class BrandImpl implements IBrandService{
         if(nameBrand != null) theBrand.setName(nameBrand);
         if(file != null){
             imageService.deleteImage(theBrand.getImageBrand());
-            theBrand.setImageBrand(imageService.saveImage(file));
+            String imageSave = imageService.saveImage(file);
+            if(imageSave != null) {
+                theBrand.setImageBrand(imageSave);
+            }
         }
         return brandRepository.save(theBrand);
     }

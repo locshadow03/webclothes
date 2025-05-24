@@ -53,7 +53,6 @@ public class ProductController {
                                                     @RequestParam("colorIndices") String colorIndicesJson,
                                                     @RequestParam("sizeIndices")  String sizeIndicesJson,
                                                     @RequestParam("nameBrand") String nameBrand,
-                                                    @RequestParam("disCount") double disCount,
                                                     @RequestParam("photo") MultipartFile photo) throws SQLException, IOException {
         ObjectMapper mapper = new ObjectMapper();
         List<SizeQuantityDto> sizeQuantities = mapper.readValue(sizeQuantitiesJson, new TypeReference<List<SizeQuantityDto>>() {});
@@ -76,8 +75,8 @@ public class ProductController {
         } else {
             System.out.println("colorImageProducts is null or empty");
         }
-        Product savedProduct = productService.addNewProduct(nameProduct, codeProduct, nameCategory, description, price, sizeQuantities, photo, nameBrand, disCount);
-        ProductDto productDto = new ProductDto(savedProduct.getName(), savedProduct.getCode(), savedProduct.getCategory().getNameCategory(), savedProduct.getDescription(), savedProduct.getPrice(), savedProduct.getBrand().getName(), savedProduct.getDisCount());
+        Product savedProduct = productService.addNewProduct(nameProduct, codeProduct, nameCategory, description, price, sizeQuantities, photo, nameBrand);
+        ProductDto productDto = new ProductDto(savedProduct.getName(), savedProduct.getCode(), savedProduct.getCategory().getNameCategory(), savedProduct.getDescription(), savedProduct.getPrice(), savedProduct.getBrand().getName());
         productDto.setSizeQuantities(sizeQuantities);
         return ResponseEntity.ok(productDto);
     }
@@ -107,8 +106,7 @@ public class ProductController {
             @RequestParam("colorIndices") String colorIndicesJson,
             @RequestParam("sizeIndices")  String sizeIndicesJson,
             @RequestParam("nameBrand") String nameBrand,
-            @RequestParam("disCount") double disCount,
-            @RequestParam("imageProductMain") MultipartFile photo) throws IOException {
+            @RequestParam(value = "imageProductMain", required = false) MultipartFile photo) throws IOException {
 
         ObjectMapper mapper = new ObjectMapper();
         List<SizeQuantityDto> sizeQuantities = mapper.readValue(sizeQuantitiesJson, new TypeReference<List<SizeQuantityDto>>() {});
@@ -137,7 +135,7 @@ public class ProductController {
         }
 
 
-        Product theProduct = productService.updateProduct(productId, nameProduct, codeProduct, nameCategory, description, price, sizeQuantities, nameBrand, photo, disCount);
+        Product theProduct = productService.updateProduct(productId, nameProduct, codeProduct, nameCategory, description, price, sizeQuantities, nameBrand, photo);
 
         ProductDto productDto = getProductDtoDetail(theProduct);
         return ResponseEntity.ok(productDto);

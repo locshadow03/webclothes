@@ -96,7 +96,7 @@ public class BrandController {
 //    }
         public ResponseEntity<BrandDto> updateRoom(@PathVariable Long brandId,
                                                   @RequestParam("nameBrand") String nameBrand,
-                                                  @RequestParam("imageBrand") MultipartFile photo) throws IOException {
+                                                  @RequestParam(value = "imageBrand", required = false) MultipartFile photo) throws IOException {
         Brand brand = brandService.updateBrand(brandId, nameBrand, photo);
         BrandDto brandDto = getBrandDto(brand);
         return ResponseEntity.ok(brandDto);

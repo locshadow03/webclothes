@@ -71,7 +71,10 @@ public class CategoryImpl implements ICategoryService{
         if(nameCategory != null) category.setNameCategory(nameCategory);
         if(file != null){
             imageService.deleteImage(category.getImageCategory());
-            category.setImageCategory(imageService.saveImage(file));
+            String imageSave = imageService.saveImage(file);
+            if(imageSave != null) {
+                category.setImageCategory(imageSave);
+            }
         }
         return categoryRepository.save(category);
     }

@@ -4,6 +4,8 @@ import { Link, useParams } from 'react-router-dom'
 import { addFavoriteProduct, getAllFavorites, removeFavoriteProduct } from '../../api/FavoriteProduct'
 import { toast } from 'react-toastify'
 import { addCartItem } from '../../api/Cart'
+import { addComment, getCommentsByProductId } from '../../api/Comment'
+import Comment from './CommentItem'
 
 const ProductDetail = () => {
     const [product, setProduct] = useState({
@@ -18,6 +20,106 @@ const ProductDetail = () => {
         imageProduct: ""
 
     })
+    const {productId} = useParams()
+
+  // State lưu danh sách comment của sản phẩm
+  const [comments, setComments] = useState([])
+
+  // State lưu nội dung comment mới người dùng nhập
+  const [newComment, setNewComment] = useState("")
+
+  const [selectedParentId, setSelectedParentId] = useState(null);
+  const [replyToUser, setReplyToUser] = useState(null);
+
+  const fetchComments = async () => {
+  try {
+    const data = await getCommentsByProductId(productId);
+    setComments(data);
+  } catch (error) {
+    console.error("Lấy comment thất bại", error);
+  }
+};
+
+  useEffect(() => {
+    fetchComments(); // Gọi khi productId thay đổi
+  }, [productId]);
+
+  // Hàm xử lý khi submit comment mới
+  const handleSubmitComment = async (e) => {
+  e.preventDefault();
+
+  if (!newComment.trim()) {
+    toast.error("Vui lòng nhập nội dung bình luận");
+    return;
+  }
+
+  try {
+    const userId = localStorage.getItem("id");
+    const userName = localStorage.getItem("username");
+
+    // Nếu bạn có UI reply thì truyền parentId, nếu không thì null
+    const parentId = selectedParentId || null;
+
+    const commentData = {
+      productId,
+      userId,
+      userName,
+      content: newComment,
+      parentId,
+      createdAt: new Date().toISOString(),
+    };
+
+    const savedComment = await addComment(commentData);
+    
+    fetchComments();
+
+    toast.success("Bình luận thành công!");
+
+    setComments(prevComments => {
+      if (parentId === null) {
+        // comment cha thì thêm vào mảng gốc
+        return [...prevComments, savedComment];
+      } else {
+        // comment con, cần thêm vào đúng vị trí comment cha
+        const addReply = (commentsList) => {
+          return commentsList.map(comment => {
+            if (comment.id === parentId) {
+              // thêm con vào đây
+              const children = comment.children ? [...comment.children, savedComment] : [savedComment];
+              return { ...comment, children };
+            }
+            if (comment.children) {
+              return { ...comment, children: addReply(comment.children) };
+            }
+            return comment;
+          });
+        };
+        return addReply(prevComments);
+      }
+    });
+
+    setNewComment("");
+    setSelectedParentId(null);
+    setReplyToUser(null);
+    fetchComments();
+
+  } catch (error) {
+    toast.error("Bình luận thất bại, thử lại sau!");
+  }
+};
+
+const onReplyClick = (comment) => {
+    setSelectedParentId(comment.id);
+    setReplyToUser(comment.userName);
+  };
+
+  const onCancelReply = () => {
+    setSelectedParentId(null);
+    setReplyToUser(null);
+  };
+
+
+    const[selectedProductColor, setSelectedProductColor] = useState("");
     const paragraphs = product.description.split('-');
     const [quantity, setQuantity] = useState(1)
     const[quantityNoChange, setQuantityNoChange] = useState({})
@@ -80,9 +182,16 @@ const ProductDetail = () => {
 
       const handleSizeChange = (productId, size) => {
         setSelectedSize(prevState => ({ ...prevState, [productId]: size }));
-        setSelectedColor(prevState => ({...prevState, [productId]: (product.sizeQuantities.length > 0 && product.sizeQuantities[0].colorImageProductDtos.length > 0 ? product.sizeQuantities[0].colorImageProductDtos[0].color : "")}))
-        setQuantityNoChange(prevState => ({...prevState, [productId]:  (product.sizeQuantities.find(sizeQuantity => sizeQuantity.size === size)?.colorImageProductDtos[0] || 0)?.quantity || 0}))
-         
+       const selectedSizeObj = product.sizeQuantities.find(sizeQuantity => sizeQuantity.size === size);
+      const firstColor = selectedSizeObj?.colorImageProductDtos?.[0]?.color || "";
+
+      setSelectedColor(prevState => ({
+        ...prevState,
+        [productId]: firstColor
+      }));
+
+      console.log("Hien thi color", selectedColor)
+
     };
 
     const handleNewCartItemClick = async (e, productId, quantity, size, color) =>{
@@ -106,13 +215,23 @@ const ProductDetail = () => {
     };
 
     const [imagePreview, setImagePreview] = useState("")
-    const {productId} = useParams()
     useEffect(() => {
         const fetchProducts = async () => {
           try {
             const productData = await getProductById(productId)
             setProduct(productData)
-            
+            const defaultSize = productData.sizeQuantities.length > 0 ? productData.sizeQuantities[0].size : "";
+            const defaultColor = productData.sizeQuantities.length > 0 && productData.sizeQuantities[0].colorImageProductDtos.length > 0 ? productData.sizeQuantities[0].colorImageProductDtos[0].color : "";
+            console.log('Hiển thị ', productData.sizeQuantities[0].colorImageProductDtos[0].color);
+            setSelectedSize({[productId]: defaultSize});
+            setSelectedColor({[productId]: defaultColor});
+            setSelectedProductColor(
+          productData.sizeQuantities.length > 0 &&
+          productData.sizeQuantities[0].colorImageProductDtos.length > 0
+            ? productData.sizeQuantities[0].colorImageProductDtos[0].color
+            : ""
+        );
+
             setImagePreview(`data:image/jpeg;base64,${productData.imageProduct}`)
           } catch (error) {
             console.error(error)
@@ -123,7 +242,7 @@ const ProductDetail = () => {
       }, [productId])
 
       const selectedProductSize = selectedSize[product.productId] || (product.sizeQuantities.length > 0 ? product.sizeQuantities[0].size : "");
-      const selectedProductColor = selectedColor[product.productId] || (product.sizeQuantities.length > 0 && product.sizeQuantities[0].colorImageProductDtos.length > 0 ? product.sizeQuantities[0].colorImageProductDtos[0].color : "");
+      // const selectedProductColor = selectedColor[product.productId] || (product.sizeQuantities.length > 0 && product.sizeQuantities[0].colorImageProductDtos.length > 0 ? product.sizeQuantities[0].colorImageProductDtos[0].color : "");
   return (
     <>
         <div className = "container-fluid mx-2 mt-4" style = {{borderBottom : "1px solid rgba(0, 0 , 0 ,0.2)"}}>
@@ -134,7 +253,7 @@ const ProductDetail = () => {
             </div>
         </div>
         <div className="container mt-4 mb-2">
-        <div className="row" key = "productId">
+        <div className="row" key = {productId}>
           <div className="col-md-6" style = {{height:'850px'}}>
             <div className = "w-100 position-relative h-100">
             <div className="h-100 w-100">
@@ -184,7 +303,7 @@ const ProductDetail = () => {
 
             <p className = 'd-flex align-items-center'><strong>Màu sắc:</strong>
                 <select
-                  value={selectedProductColor[product.productId]}
+                  value={selectedColor[product.productId] || selectedProductColor}
                   onChange={(e) => handleColorChange(product.productId, e.target.value)}
                   className="form-select text-center mx-3"
                   style={{width: '100px', height: '35px',fontSize: '13px'}}
@@ -218,7 +337,7 @@ const ProductDetail = () => {
               <button className="btn btn-outline-primary" onClick={increaseQuantity}>+</button>
             </div>
             <div className = 'mt-5 d-flex align-items-center pb-3 '>
-                <button className=" mx-1 btn btn-primary" onClick={(e) => handleNewCartItemClick(e, product.productId, quantity, selectedProductSize, selectedColor[product.productId])}>Thêm vào giỏ hàng</button>
+                <button className=" mx-1 btn btn-primary" onClick={(e) => handleNewCartItemClick(e, product.productId, quantity, selectedProductSize, selectedProductColor || selectedColor[product.productId])}>Thêm vào giỏ hàng</button>
                 <button className={`mx-4 d-flex align-items-center favorite-button ${favoriteProducts.includes(product.productId) ? 'favorited' : ''}`}
                     onClick={(e) => handleFavoriteClick(e, product.productId)}
                  style={{fontSize:'25px', backgroundColor: 'transparent', border: 'none' }}><i class="bi bi-heart-fill mx-2" style={{ color: favoriteProducts.includes(product.productId) ? 'red' : 'white' }}></i><p className = 'text-black m-0'>Yêu thích</p></button>
@@ -247,10 +366,76 @@ const ProductDetail = () => {
             </div>
         </div>
 
+        <div className="mt-5">
+              <h5>Bình luận</h5>
+              
+              {/* Comment Input */}
+              <form onSubmit={handleSubmitComment} className="mb-4">
+                <div className="d-flex gap-2 align-items-start">
+                  <div 
+                    className="rounded-circle" 
+                    style={{ 
+                      width: 40, 
+                      height: 40, 
+                      backgroundColor: "#e4e6eb",
+                      flexShrink: 0 
+                    }}
+                  />
+                  <div className="flex-grow-1 position-relative">
+                    {replyToUser && (
+                      <div className="bg-light rounded p-2 mb-2 d-flex align-items-center">
+                        <span className="text-muted">Đang trả lời {replyToUser}</span>
+                        <button 
+                          type="button" 
+                          onClick={onCancelReply}
+                          className="btn-close ms-2"
+                          aria-label="Close"
+                          style={{ fontSize: 10 }}
+                        />
+                      </div>
+                    )}
+                    <input
+                      type="text"
+                      className="form-control rounded-pill"
+                      placeholder={replyToUser ? `Trả lời ${replyToUser}...` : "Viết bình luận..."}
+                      value={newComment}
+                      onChange={(e) => setNewComment(e.target.value)}
+                      style={{ padding: '8px 20px' }}
+                    />
+                    <button 
+                      type="submit"
+                      className="btn btn-primary rounded-pill position-absolute end-0 top-0 mt-1 me-2"
+                      style={{ 
+                        padding: '4px 16px',
+                        fontSize: 14,
+                        transform: 'translateY(10%)'
+                      }}
+                    >
+                      Gửi
+                    </button>
+                  </div>
+                </div>
+              </form>
 
-      </div>
-    </>
-  )
-}
+              {/* Comment List */}
+              <div className="mt-3">
+                {comments.length === 0 && <p className="text-muted">Chưa có bình luận nào.</p>}
+                
+                {comments.map((comment) => (
+                  <Comment
+                    key={comment.id}
+                    comment={comment}
+                    onReplyClick={onReplyClick}
+                    currentUser={localStorage.getItem("username")}
+                  />
+                ))}
+              </div>
+            </div>
+            </div>
+                </>
+              );
+            };
+          
+
 
 export default ProductDetail

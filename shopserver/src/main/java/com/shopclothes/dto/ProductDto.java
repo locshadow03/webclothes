@@ -30,14 +30,13 @@ public class ProductDto {
     @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime updatedAt;
 
-    public ProductDto(String name, String code, String nameCategory, String description, double price, String nameBrand, double disCount) {
+    public ProductDto(String name, String code, String nameCategory, String description, double price, String nameBrand) {
         this.name = name;
         this.code = code;
         this.nameCategory = nameCategory;
         this.description = description;
         this.price = price;
         this.nameBrand = nameBrand;
-        this.disCount = disCount;
     }
 
     public ProductDto(Long productId, String name, double price, String imagePorduct, double disCount, int viewCount) {

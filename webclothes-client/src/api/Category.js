@@ -60,7 +60,9 @@ export async function deleteCategory(categoryId){
 
 export async function updateCategory(categoryId, categoryData){
     const formData = new FormData()
-    formData.append("imageCategory", categoryData.imageCategory)
+    if(categoryData.imageCategory != null){
+        formData.append("imageCategory", categoryData.imageCategory)
+    }
     formData.append("nameCategory", categoryData.nameCategory)
     const response = await api.put(`/update/${categoryId}`, formData)
     return response

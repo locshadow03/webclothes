@@ -9,6 +9,7 @@ import java.util.List;
 @Data
 public class CreateOrderRequest {
     private Customer customer;
+    private String orderCode;
     private List<OrderItem> items;
     private String paymentMethod;
 }

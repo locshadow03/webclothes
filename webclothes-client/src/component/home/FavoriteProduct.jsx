@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { addFavoriteProduct, getAllFavorites, removeFavoriteProduct } from '../../api/FavoriteProduct';
 import { toast } from 'react-toastify';
+import { addCartItem } from '../../api/Cart';
 
 const FavoriteProduct = () => {
     const[allFavoriteProducts, setAllFavoriteProducts] = useState([]);
@@ -45,6 +46,21 @@ const FavoriteProduct = () => {
           console.error("Failed to fetch favorites:", error);
         }
       }
+
+        const handleNewCartItemClick = async (e, productId, quantity, size, color) =>{
+          e.preventDefault()
+          const cartId = localStorage.getItem('cartId')
+          console.error("Mã giỏ hàng là:",cartId)
+      
+          try{
+            if(cartId !== null){
+              await addCartItem(cartId, productId, quantity, size, color);
+              toast.success("Thêm vào giỏ hàng thành công!");
+            }
+          } catch(error){
+            setErrorMessage(error.message);
+          }
+        }
 
     useEffect(() =>{
         fetchFavorites()
@@ -123,11 +139,11 @@ const FavoriteProduct = () => {
                     </div>
                     <div className="mx-1">
                       <div className="bg-warning">
-                        <p className="text-white">{formatCurrency((product.price - (product.price * (product.disCount/100))))}</p>
+                        <p className="text-white">{formatCurrency(product.percentage ? (product.price - (product.price * (product.disCount/100))) : (product.price - product.disCount))}</p>
                       </div>
                     </div>
                   </div>
-                  <div className="col pb-3">
+                  <div className="col pb-3" onClick={(e) => handleNewCartItemClick(e, product.productId, 1, product.product.sizeQuantities[0].size, product.product.sizeQuantities[0].colorImageProductDtos[0].color)}>
                     <button className="btn btn-primary"><i className="bi bi-cart3"></i> Thêm vào giỏ hàng</button>
                   </div>
                 </div>

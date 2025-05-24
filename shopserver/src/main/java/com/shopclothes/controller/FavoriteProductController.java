@@ -1,9 +1,11 @@
 package com.shopclothes.controller;
 
 import com.shopclothes.dto.*;
+import com.shopclothes.dto.event.DiscountAndPercentage;
 import com.shopclothes.extension.PhotoRetrievalExcetion;
 import com.shopclothes.model.FavoriteProduct;
 import com.shopclothes.model.Product;
+import com.shopclothes.service.event.IDiscountEventService;
 import com.shopclothes.service.favorite.IFavoriteProductService;
 import com.shopclothes.service.product.IProductService;
 import lombok.RequiredArgsConstructor;
@@ -26,7 +28,7 @@ import java.util.stream.Collectors;
 public class FavoriteProductController {
     private final IFavoriteProductService favoriteProductService;
     private final IProductService productService;
-
+    private final IDiscountEventService discountEventService;
     @GetMapping("/{userId}")
     public ResponseEntity<List<FavoriteProductDto>> getFavoriteProducts(@PathVariable Long userId) throws SQLException {
         List<FavoriteProduct> favoriteProducts = favoriteProductService.getAllFavoriteProductsByUser(userId);
@@ -56,6 +58,14 @@ public class FavoriteProductController {
 //            }
 //        }
         FavoriteProductDto favoriteProductDto = new FavoriteProductDto(favoriteProduct.getProduct().getId(), favoriteProduct.getProduct().getName(), favoriteProduct.getProduct().getDisCount(),favoriteProduct.getProduct().getPrice(), favoriteProduct.getProduct().getImageProduct());
+        DiscountAndPercentage discountAndPercentage = discountEventService.getDisCountProductNowByProductId(favoriteProduct.getProduct().getId());
+        if(discountAndPercentage != null){
+            favoriteProductDto.setDisCount(discountAndPercentage.getDiscount());
+            favoriteProductDto.setPercentage(discountAndPercentage.isPercentage());
+        } else{
+            favoriteProductDto.setDisCount(0.0);
+            favoriteProductDto.setPercentage(false);
+        }
         return favoriteProductDto;
     }
 

@@ -13,7 +13,6 @@ const AddProduct = () => {
         price:"",
         sizeQuantities: [],
         nameBrand:"",
-        disCount:"",
         imageProduct: "",
         colorImageProducts: []
     });
@@ -112,7 +111,6 @@ const AddProduct = () => {
                 newProduct.price,
                 newProduct.sizeQuantities,
                 newProduct.nameBrand,
-                newProduct.disCount,
                 newProduct.photo
             );
             if (success !== undefined) {
@@ -126,7 +124,6 @@ const AddProduct = () => {
                     price: "",
                     sizeQuantities:[],
                     nameBrand: "",
-                    disCount: "",
                     photo: null
                 });
                 setImagePreview("");
@@ -242,20 +239,6 @@ const AddProduct = () => {
                         </div>
                     </div>
 
-
-                    <div className='mb-3 col-6'>
-                        <div className='mx-1'>
-                        <label htmlFor='disCount' className='form-label'>Phiếu giảm giá</label>
-                        <input
-                            id="disCount"
-                            name="disCount"
-                            type="number"
-                            className='form-control'
-                            value={newProduct.disCount}
-                            onChange={handleProductInputChange}
-                        />
-                        </div>
-                    </div>
                     </div>
 
                     <div className='mb-3'>

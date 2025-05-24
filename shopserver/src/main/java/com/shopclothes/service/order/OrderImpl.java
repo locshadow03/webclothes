@@ -36,17 +36,12 @@ public class OrderImpl implements IOrderService{
 
 
     @Override
-    public Order createOrder(Customer customer, List<OrderItem> items, String paymentMethod) {
+    public Order createOrder(Customer customer,String orderCode, List<OrderItem> items, String paymentMethod) {
         if (customer == null || customerRepository.findById(customer.getId()).isEmpty()) {
             throw new IllegalArgumentException("Customer không tồn tại.");
         }
 
         Optional<Customer> customerNow = customerRepository.findById(customer.getId());
-
-        String orderCode;
-        do {
-            orderCode = generateOrderCode();
-        } while (orderRepository.existsByOrderCode(orderCode));
 
         Double totalAmountNow = 0.0;
         // Kiểm tra các sản phẩm
@@ -61,7 +56,7 @@ public class OrderImpl implements IOrderService{
             // Kiểm tra số lượng còn lại
             int quantity = colorImageProductRepository.getQuanityByIdColorAndSizeQuantity(item.getColor(), sizeQuantity.getId()).getQuantity();
             if (quantity < item.getQuantity()) {
-                throw new IllegalArgumentException("Không đủ số lượng cho size " + item.getSize() + " của sản phẩm ID " + product.getId());
+                throw new IllegalArgumentException("Không đủ số lượng cho size " + item.getSize() + " của sản phẩm " + product.getName() + " có màu sắc là " + item.getColor());
             }
 
 
@@ -72,18 +67,25 @@ public class OrderImpl implements IOrderService{
             colorImageProductRepository.save(colorImageProduct);
             // Đảm bảo giá sản phẩm là chính xác
             DiscountAndPercentage disCountProduct = discountEventService.getDisCountProductNowByProductId(product.getId());
-            item.setPrice(product.getPrice() - product.getPrice() *(disCountProduct.getDiscount() / 100));
-            if(disCountProduct.isPercentage()){
-                item.setPrice( product.getPrice() - product.getPrice() *(disCountProduct.getDiscount() / 100));
-            } else{
-                item.setPrice( product.getPrice() - disCountProduct.getDiscount());
+            if(disCountProduct != null){
+                if(disCountProduct.isPercentage()){
+                    item.setPrice( product.getPrice() - product.getPrice() *(disCountProduct.getDiscount() / 100));
+                } else{
+                    item.setPrice( product.getPrice() - disCountProduct.getDiscount());
+                }
+            } else {
+                item.setPrice(product.getPrice());
             }
             item.setSize(sizeQuantity.getSize());
             item.setColor(colorImageProduct.getColor());
-            if(disCountProduct.isPercentage()){
-                totalAmountNow += item.getQuantity() *( product.getPrice() - product.getPrice() *(disCountProduct.getDiscount() / 100));
-            } else{
-                totalAmountNow += item.getQuantity() *( product.getPrice() - disCountProduct.getDiscount());
+            if(disCountProduct != null){
+                if(disCountProduct.isPercentage()){
+                    totalAmountNow += item.getQuantity() *( product.getPrice() - product.getPrice() *(disCountProduct.getDiscount() / 100));
+                } else{
+                    totalAmountNow += item.getQuantity() *( product.getPrice() - disCountProduct.getDiscount());
+                }
+            } else {
+                totalAmountNow += item.getQuantity() * product.getPrice();
             }
         }
         PaymentMethod method = PaymentMethod.valueOf(paymentMethod.toUpperCase());
@@ -147,10 +149,30 @@ public class OrderImpl implements IOrderService{
         return orderCode.toString();
     }
 
+
     @Override
     public Order getOrder(Long orderId) {
         return orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found with id: " + orderId));
+    }
+
+    @Override
+    public String CreateOrderCode() {
+        String orderCode;
+        do {
+            orderCode = generateOrderCode();
+        } while (orderRepository.existsByOrderCode(orderCode));
+
+        return orderCode;
+    }
+
+    @Override
+    public Order updateOrderPaymentStatus(Long orderId, String payMentStatus) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
+
+        order.setPaymentStatus(payMentStatus);
+        return orderRepository.save(order);
     }
 
     @Override

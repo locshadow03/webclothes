@@ -67,7 +67,7 @@ public class CategoryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<CategoryDto> updateRoom(@PathVariable Long categoryId,
                                                   @RequestParam("nameCategory") String nameCategory,
-                                                  @RequestParam("imageCategory") MultipartFile photo) throws SQLException, IOException {
+                                                  @RequestParam(value = "imageCategory", required = false) MultipartFile photo) throws SQLException, IOException {
         Category theCategory = categoryService.updateCategory(categoryId, nameCategory, photo);
         CategoryDto categoryDto = getCategoryDto(theCategory);
         return ResponseEntity.ok(categoryDto);

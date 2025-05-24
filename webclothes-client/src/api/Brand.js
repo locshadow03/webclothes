@@ -51,7 +51,9 @@ export async function deleteBrand(brandId){
 
 export async function updateBrand(brandId, brandData){
     const formData = new FormData()
+    if(brandData.imageBrand != null){
     formData.append("imageBrand", brandData.imageBrand)
+    }
     formData.append("nameBrand", brandData.nameBrand)
     const response = await api.put(`/update/${brandId}`, formData)
     return response

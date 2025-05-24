@@ -9,10 +9,13 @@ import com.shopclothes.model.OrderItem;
 import java.util.List;
 
 public interface IOrderService {
-    Order createOrder(Customer customer, List<OrderItem> items, String paymentMethod);
+    Order createOrder(Customer customer,String orderCode, List<OrderItem> items, String paymentMethod);
 
     Order getOrder(Long orderId);
 
+    String CreateOrderCode();
+
+    Order updateOrderPaymentStatus(Long orderId,String payMentStatus);
     List<Order> getOrdersByCustomerId(Long customerId);
 
     List<Order> getAllOrders();

@@ -13,7 +13,6 @@ const EditProduct = () => {
         price:"",
         sizeQuantities: [],
         nameBrand:"",
-        disCount:"",
         imageProduct: "",
         colorImageProducts: []
 
@@ -58,7 +57,7 @@ const EditProduct = () => {
           
           const response = await updateProduct(productId,product)
           if (response.status === 200){
-            setSuccessMessage("product updated successfully!")
+            setSuccessMessage("Cập nhật sản phẩm thành công!")
             const updateProductData = await getProductById(productId)
             setProduct(updateProductData)
 			setImagePreview(updateProductData.imageProduct)
@@ -227,19 +226,6 @@ const handleRemoveSizeQuantity = (index) => {
                         </div>
                     </div>
 
-                    <div className='mb-3 col-4'>
-                        <div className='mx-1'>
-                        <label htmlFor='disCount' className='form-label'>Phiếu giảm giá</label>
-                        <input
-                            id="disCount"
-                            name="disCount"
-                            type="number"
-                            className='form-control'
-                            value={product.disCount}
-                            onChange={handleProductInputChange}
-                        />
-                        </div>
-                    </div>
                     </div>
 
                     <div className='mb-3'>

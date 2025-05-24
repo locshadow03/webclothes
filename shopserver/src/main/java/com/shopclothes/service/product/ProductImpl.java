@@ -31,7 +31,7 @@ public class ProductImpl implements IProductService{
     private final ColorImageProductRepository colorImageProductRepository;
 
     @Override
-    public Product addNewProduct(String name, String code, String nameCategory, String description, double price, List<SizeQuantityDto> sizeQuantities, MultipartFile imageProduct, String nameBrand, double disCount) throws IOException {
+    public Product addNewProduct(String name, String code, String nameCategory, String description, double price, List<SizeQuantityDto> sizeQuantities, MultipartFile imageProduct, String nameBrand) throws IOException {
         Optional<Category> categoryOpt = categoryRepository.findByNameCategory(nameCategory);
         Optional<Brand> brandOpt = brandRepository.findByName(nameBrand);
 
@@ -47,7 +47,6 @@ public class ProductImpl implements IProductService{
         product.setDescription(description);
         product.setPrice(price);
         product.setBrand(brand);
-        product.setDisCount(disCount);
         product.setImageProduct(imageService.saveImage(imageProduct));
 
         List<SizeQuantity> sizeQuantityList = sizeQuantities.stream()
@@ -91,7 +90,7 @@ public class ProductImpl implements IProductService{
 
     @Transactional
     @Override
-    public Product updateProduct(Long productId, String nameProduct, String codeProduct, String nameCategory, String description, double price, List<SizeQuantityDto> sizeQuantities, String nameBrand, MultipartFile file, double disCount) throws IOException {
+    public Product updateProduct(Long productId, String nameProduct, String codeProduct, String nameCategory, String description, double price, List<SizeQuantityDto> sizeQuantities, String nameBrand, MultipartFile file) throws IOException {
         Optional<Category> categoryOpt = categoryRepository.findByNameCategory(nameCategory);
         Optional<Brand> brandOpt = brandRepository.findByName(nameBrand);
         if (!categoryOpt.isPresent() || !brandOpt.isPresent()) {
@@ -109,9 +108,13 @@ public class ProductImpl implements IProductService{
         if (description != null) product.setDescription(description);
         product.setPrice(price);
         product.setBrand(brand);
-        product.setDisCount(disCount);
-        imageService.deleteImage(product.getImageProduct());
-        product.setImageProduct(imageService.saveImage(file));
+        if(file != null){
+            imageService.deleteImage(product.getImageProduct());
+            String imageSave = imageService.saveImage(file);
+            if(imageSave != null) {
+                product.setImageProduct(imageSave);
+            }
+        }
         List<SizeQuantity> existingSizeQuantities = sizeQuantityRepository.findByProductId(productId);
 
         Set<Long> incomingSizeIds = sizeQuantities.stream()
